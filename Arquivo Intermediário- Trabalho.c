@@ -18,7 +18,7 @@ Versao 1.0j - 26/11/2015 Evita operacoes com zero.
 Elementos aceitos e linhas do netlist:
 Resistor:      R<nome> <no+> <no-> <resistencia>
 Indutor:       L<nome> <nó+> <nó-> <indutancia>
-Acoplamento:   K<nome> <nóLa+> <nóLa-> <nóLb+> <nóLb-> <indutanciaLa> <indutanciaLb> <k> 
+Acoplamento:   K<nome> <LA> <LB-> <k> (indutores LA e LB já declarados)
 Capacitor:     C<nome> <nó+> <nó-> <capacitancia>
 VCCS:          G<nome> <io+> <io-> <vi+> <vi-> <transcondutancia>
 VCVC:          E<nome> <vo+> <vo-> <vi+> <vi-> <ganho de tensao>
@@ -197,7 +197,7 @@ int main(void)
 	  }
 	  else if (tipo=='C') {     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
 		  inc_C++;
-          cap_C[inc_C] = netlist[ne].valor;
+                  cap_C[inc_C] = netlist[ne].valor;
 		  netlist[ne].valor = 1e9;
 		  printf("%s %s %s %g\n",netlist[ne].nome,na,nb,cap_C[inc_C]);
 	  }
