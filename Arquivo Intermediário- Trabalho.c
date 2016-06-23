@@ -12,6 +12,7 @@ Versao 1.0g - 15/10/2009 Le as linhas inteiras
 Versao 1.0h - 18/6/2011 Estampas correspondendo a modelos
 Versao 1.0i - 03/11/2013 Correcoes em *p e saida com sistema singular.
 Versao 1.0j - 26/11/2015 Evita operacoes com zero.
+Versao 1.0k - 23/06/2016 Calcula o ponto de operação com C, L e K (ignora K, pois não existe acoplamento em DC)
 */
 
 /*
@@ -368,17 +369,20 @@ int main(void)
       Yn[netlist[i].x][netlist[i].d]-=1;
     }
 	
+	if (netlist[i].nome[0] != 'K') {
 #ifdef DEBUG
-    /* Opcional: Mostra o sistema apos a montagem da estampa */
-    printf("Sistema apos a estampa de %s\n",netlist[i].nome);
-    for (k=1; k<=nv; k++) {
-      for (j=1; j<=nv+1; j++)
-        if (Yn[k][j]!=0) printf("%+3.1f ",Yn[k][j]);
-        else printf(" ... ");
-      printf("\n");
-    }
-    getch();
+	    /* Opcional: Mostra o sistema apos a montagem da estampa */
+	    printf("Sistema apos a estampa de %s\n",netlist[i].nome);
+	    for (k=1; k<=nv; k++) {
+	      for (j=1; j<=nv+1; j++)
+	        if (Yn[k][j]!=0) printf("%+3.1f ",Yn[k][j]);
+	        else printf(" ... ");
+	      printf("\n");
+	    }
+	    getch();
+	}
 #endif
+
   }
   /* Resolve o sistema */
   if (resolversistema()) {
