@@ -63,7 +63,6 @@ int
   ne, /* Elementos */
   nv, /* Variaveis */
   nn, /* Nos */
-  nLk, /*Numero de Indutores Acoplados*/
   i,j,k;
 
 char
@@ -73,8 +72,6 @@ char
   tipo,
   na[MAX_NOME],nb[MAX_NOME],nc[MAX_NOME],nd[MAX_NOME],
   lista[MAX_NOS+1][MAX_NOME+2], /*Tem que caber jx antes do nome */
-  lak[MAX_NOME],lbk[MAX_NOME],/*armazenam os nomes dos indutores acoplados*/
-  listaLk[MAX_NOME][MAX_ELEM], /*lista para armazenar os indutores passíveis de serem acoplados*/
   txt[MAX_LINHA+1],
   *p;
 FILE *arquivo;
@@ -189,13 +186,13 @@ int main(void)
       sscanf(p,"%10s%10s%lg",na,nb,&netlist[ne].valor);
 	  
 	  if (tipo=='L'){     //substitui a indutancia pela baixa resistencia e armazena a indutancia em outra var
-		  nLk++;
-          stpcpy(listaLk[nLk],netlist[ne].nome);
+
 		  ind_L = netlist[ne].valor;
 		  netlist[ne].valor = 1e-9;
 	  }
 	  if (tipo=='C'){     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
-		  cap_C = netlist[ne].valor;
+		  
+                  cap_C = netlist[ne].valor;
 		  netlist[ne].valor = 1e9;
 	  }
 	  
