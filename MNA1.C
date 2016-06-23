@@ -1,7 +1,8 @@
-/*Fernanda oi FGNKJDFSNBFJHG
+/*
 Programa de demonstracao de analise nodal modificada
 Por Antonio Carlos M. de Queiroz acmq@coe.ufrj.br
 Versao 1.0 - 6/9/2000
+DIHDGUHUG
 Versao 1.0a - 8/9/2000 Ignora comentarios
 Versao 1.0b - 15/9/2000 Aumentado Yn, retirado Js
 Versao 1.0c - 19/2/2001 Mais comentarios
