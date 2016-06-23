@@ -81,6 +81,7 @@ FILE *arquivo;
 
 double
   g,
+  Yn[MAX_NOS+1][MAX_NOS+2];
 
 /* Resolucao de sistema de equacoes lineares.
    Metodo de Gauss-Jordan com condensacao pivotal */
