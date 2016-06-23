@@ -57,7 +57,7 @@ typedef struct elemento { /* Elemento do netlist */
 
 elemento netlist[MAX_ELEM]; /* Netlist */
 
-double ind_L, cap_C; /*guarda os valores de indutancia e capacitancia p/ serem utilizados no modelo de peq. sinais*/ 
+double ind_L[MAX_ELEM], cap_C[MAX_ELEM]; /*guarda os valores de indutancia e capacitancia p/ serem utilizados no modelo de peq. sinais*/ 
 
 int
   ne, /* Elementos */
@@ -84,7 +84,7 @@ double
    Metodo de Gauss-Jordan com condensacao pivotal */
 int resolversistema(void)
 {
-  int i,j,l, a;
+  int i,j,l,a,inc_L,inc_C;
   double t, p;
 
   for (i=1; i<=nv; i++) {
@@ -159,7 +159,7 @@ int main(void)
   printf("Versao %s\n",versao);
  denovo:
   /* Leitura do netlist */
-  ne=0; nv=0; strcpy(lista[0],"0");
+  ne=0; nv=0; inc_L=0; inc_C=0; strcpy(lista[0],"0");
   printf("Nome do arquivo com o netlist (ex: mna.net): ");
   scanf("%50s",nomearquivo);
   arquivo=fopen(nomearquivo,"r");
@@ -186,13 +186,13 @@ int main(void)
       sscanf(p,"%10s%10s%lg",na,nb,&netlist[ne].valor);
 	  
 	  if (tipo=='L'){     //substitui a indutancia pela baixa resistencia e armazena a indutancia em outra var
-
-		  ind_L = netlist[ne].valor;
+		  inc_L++; 	
+		  ind_L[inc_L] = netlist[ne].valor;
 		  netlist[ne].valor = 1e-9;
 	  }
 	  if (tipo=='C'){     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
-		  
-                  cap_C = netlist[ne].valor;
+		  inc_C++;
+                  cap_C[inc_C] = netlist[ne].valor;
 		  netlist[ne].valor = 1e9;
 	  }
 	  
