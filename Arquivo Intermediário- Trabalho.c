@@ -195,8 +195,7 @@ int main(void)
 		  netlist[ne].valor = 1e-9;
 	  }
 	  if (tipo=='C'){     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
-		  
-cap_C = netlist[ne].valor;
+		  cap_C = netlist[ne].valor;
 		  netlist[ne].valor = 1e9;
 	  }
 	  
