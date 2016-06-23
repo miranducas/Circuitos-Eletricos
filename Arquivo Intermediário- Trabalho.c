@@ -12,7 +12,6 @@ Versao 1.0g - 15/10/2009 Le as linhas inteiras
 Versao 1.0h - 18/6/2011 Estampas correspondendo a modelos
 Versao 1.0i - 03/11/2013 Correcoes em *p e saida com sistema singular.
 Versao 1.0j - 26/11/2015 Evita operacoes com zero.
-Versao 1.0k - 23/06/2016 Calcula o ponto de operação com C, L e K (ignora K, pois não existe acoplamento em DC)
 */
 
 /*
@@ -57,7 +56,7 @@ typedef struct elemento { /* Elemento do netlist */
 elemento netlist[MAX_ELEM]; /* Netlist */
 
 typedef struct acoplamento {
-  char lA,lB;
+  char lA[MAX_NOME],lB[MAX_NOME];
 } acoplamento;
 
 acoplamento acop_K;
@@ -209,7 +208,7 @@ int main(void)
 	}
 	
 	else if (tipo=='K') {
-		sscanf(p,"%10s%10s%lg",na,nb,nc,nd,acop_K.lA,acop_K.lB,&netlist[ne].valor);
+		sscanf(p,"%10s%10s%lg",acop_K.lA,acop_K.lB,&netlist[ne].valor);
 		printf("%s %s %s %g\n",netlist[ne].nome,acop_K.lA,acop_K.lB,netlist[ne].valor);
 	}
 	
