@@ -356,9 +356,7 @@ int main(void)
       Yn[netlist[i].x][netlist[i].c]+=1;
       Yn[netlist[i].x][netlist[i].d]-=1;
     }
-	else if (tipo=='K') {
-		
-	}
+	
 #ifdef DEBUG
     /* Opcional: Mostra o sistema apos a montagem da estampa */
     printf("Sistema apos a estampa de %s\n",netlist[i].nome);
