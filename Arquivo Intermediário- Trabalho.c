@@ -16,10 +16,9 @@ Versao 1.0j - 26/11/2015 Evita operacoes com zero.
 
 /*
 Elementos aceitos e linhas do netlist:
-
 Resistor:      R<nome> <no+> <no-> <resistencia>
 Indutor:       L<nome> <nó+> <nó-> <indutancia>
-Acoplamento:   K<nome> <La> <Lb> <k> (La e Lb nomes de indutores ja declarados.)
+Acoplamento:   K<nome> <nóLa+> <nóLa-> <nóLb+> <nóLb-> <indutanciaLa> <indutanciaLb> <k> 
 Capacitor:     C<nome> <nó+> <nó-> <capacitancia>
 VCCS:          G<nome> <io+> <io-> <vi+> <vi-> <transcondutancia>
 VCVC:          E<nome> <vo+> <vo-> <vi+> <vi-> <ganho de tensao>
@@ -29,7 +28,6 @@ Fonte I:       I<nome> <io+> <io-> <corrente>
 Fonte V:       V<nome> <vo+> <vo-> <tensao>
 Amp. op.:      O<nome> <vo1> <vo2> <vi1> <vi2>
 TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <?> <?> <?> <Ld>
-
 As fontes F e H tem o ramo de entrada em curto
 O amplificador operacional ideal tem a saida suspensa
 Os nos podem ser nomes
@@ -57,13 +55,20 @@ typedef struct elemento { /* Elemento do netlist */
 
 elemento netlist[MAX_ELEM]; /* Netlist */
 
+typedef struct acoplamento {
+  char lA,lB;
+} acoplamento;
+
+acoplamento acop_K;
+
 double ind_L[MAX_ELEM], cap_C[MAX_ELEM]; /*guarda os valores de indutancia e capacitancia p/ serem utilizados no modelo de peq. sinais*/ 
 
 int
   ne, /* Elementos */
   nv, /* Variaveis */
   nn, /* Nos */
-  i,j,k;
+  i,j,k,
+  inc_L, inc_C;
 
 char
 /* Foram colocados limites nos formatos de leitura para alguma protecao
@@ -167,8 +172,8 @@ int main(void)
     printf("Arquivo %s inexistente\n",nomearquivo);
     goto denovo;
   }
+  printf("\nAnálise no Ponto de Operação (P.O.)\n\n");
   printf("Lendo netlist:\n");
-  printf("Netlist para P.O.:\n");
   fgets(txt,MAX_LINHA,arquivo);
   printf("Titulo: %s",txt);
   while (fgets(txt,MAX_LINHA,arquivo)) { //leitura do netlist linha por linha
@@ -184,26 +189,29 @@ int main(void)
     /* O que e lido depende do tipo */
     if (tipo=='R' || tipo=='L' || tipo=='C' || tipo=='I' || tipo=='V') {
       sscanf(p,"%10s%10s%lg",na,nb,&netlist[ne].valor);
-	  
-	  if (tipo=='L'){     //substitui a indutancia pela baixa resistencia e armazena a indutancia em outra var
+	  if (tipo=='L') {     //substitui a indutancia pela baixa resistencia e armazena a indutancia em outra var
 		  inc_L++; 	
 		  ind_L[inc_L] = netlist[ne].valor;
 		  netlist[ne].valor = 1e-9;
+		  printf("%s %s %s %g\n",netlist[ne].nome,na,nb,ind_L[inc_L]);
 	  }
-	  if (tipo=='C'){     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
+	  else if (tipo=='C') {     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
 		  inc_C++;
-                  cap_C[inc_C] = netlist[ne].valor;
+          cap_C[inc_C] = netlist[ne].valor;
 		  netlist[ne].valor = 1e9;
+		  printf("%s %s %s %g\n",netlist[ne].nome,na,nb,cap_C[inc_C]);
 	  }
-	  
-	  printf("%s %s %s %g\n",netlist[ne].nome,na,nb,netlist[ne].valor);
+	  else 
+	  	printf("%s %s %s %g\n",netlist[ne].nome,na,nb,netlist[ne].valor);	   
       netlist[ne].a=numero(na);
       netlist[ne].b=numero(nb);
-    }
-	else if (tipo=='K') {
-		sscanf(p,"%10s%10s%lg",laK,lbK,&netlist[ne].valor);
-		printf("%s %s %s %g\n",netlist[ne].nome,lbK,laK,netlist[ne].valor);
 	}
+	
+	else if (tipo=='K') {
+		sscanf(p,"%10s%10s%lg",na,nb,nc,nd,acop_K.lA,acop_K.lB,&netlist[ne].valor);
+		printf("%s %s %s %g\n",netlist[ne].nome,acop_K.lA,acop_K.lB,netlist[ne].valor);
+	}
+	
     else if (tipo=='G' || tipo=='E' || tipo=='F' || tipo=='H') {
       sscanf(p,"%10s%10s%10s%10s%lg",na,nb,nc,nd,&netlist[ne].valor);
       printf("%s %s %s %s %s %g\n",netlist[ne].nome,na,nb,nc,nd,netlist[ne].valor);
@@ -265,7 +273,7 @@ int main(void)
   for (i=0; i<=nv; i++)
     printf("%d -> %s\n",i,lista[i]);
   getch();
-  printf("Netlist interno final\n");
+  printf("Netlist interno final:\n");
   for (i=1; i<=ne; i++) {
     tipo=netlist[i].nome[0];
     if (tipo=='R' || tipo=='L' || tipo=='C' || tipo=='I' || tipo=='V') {
@@ -277,6 +285,9 @@ int main(void)
     else if (tipo=='O') {
       printf("%s %d %d %d %d\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d);
     }
+    else if (tipo=='K') {
+      printf("%s %s %s %g\n",netlist[i].nome,acop_K.lA,acop_K.lB,netlist[i].valor);	
+	}
     if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O')
       printf("Corrente jx: %d\n",netlist[i].x);
     else if (tipo=='H')
