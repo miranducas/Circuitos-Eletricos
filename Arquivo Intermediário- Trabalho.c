@@ -28,7 +28,7 @@ CCVS:          H<nome> <vo+> <vo-> <ii+> <ii-> <transresistencia>
 Fonte I:       I<nome> <io+> <io-> <corrente>
 Fonte V:       V<nome> <vo+> <vo-> <tensao>
 Amp. op.:      O<nome> <vo1> <vo2> <vi1> <vi2>
-TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <?> <?> <?> <Ld>
+TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
 As fontes F e H tem o ramo de entrada em curto
 O amplificador operacional ideal tem a saida suspensa
 Os nos podem ser nomes
@@ -61,6 +61,13 @@ typedef struct acoplamento {
 } acoplamento;
 
 acoplamento acop_K;
+
+typedef struct transitorMOS {
+   char tipo[4];
+   double comp,larg,transK,vt0,lambda,gama,phi,ld;
+} transistorMOS;
+
+mosfet transistorMOS;
 
 double ind_L[MAX_ELEM], cap_C[MAX_ELEM]; /*guarda os valores de indutancia e capacitancia p/ serem utilizados no modelo de peq. sinais*/ 
 
@@ -229,6 +236,16 @@ int main(void)
       netlist[ne].c=numero(nc);
       netlist[ne].d=numero(nd);
     }
+    
+    else if (tipo=='M') {
+    	sscanf(p,"%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg%lg%lg",nd,ng,ns,nb,mos.tipo,mos.comp,mos.larg,mos.vt0,mos.lambda,mos.gama,mos.phi,mos.ld);
+    	printf("%s %s %s %s %s %s %g %g %g %g %g %g %g %g",netlist[ne].nome,nd,ng,ns,nb,mos.tipo,mos.comp,mos.larg,mos.vt0,mos.lambda,mos.gama,mos.phi,mos.ld);
+    	netlist[ne].a=numero(nd);
+        netlist[ne].b=numero(ng);
+        netlist[ne].c=numero(ns);
+        netlist[ne].d=numero(nb);
+    }
+    
     else if (tipo=='*') { /* Comentario comeca com "*" */
       printf("Comentario: %s",txt);
       ne--;
