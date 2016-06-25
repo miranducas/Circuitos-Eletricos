@@ -61,14 +61,14 @@ typedef struct acoplamento {
   char lA[MAX_NOME],lB[MAX_NOME];
 } acoplamento;
 
-acoplamento acop_K;
+acoplamento acop_K[MAX_ELEM];
 
 typedef struct transitorMOS {
-   char tipo[4];
-   double comp,larg,transK,vt0,lambda,gama,phi,ld;
+   char tipo[5],comp[MAX_NOME],larg[MAX_NOME];
+   double transK,vt0,lambda,gama,phi,ld;
 } transistorMOS;
 
-transistorMOS mos;
+transistorMOS mos[MAX_ELEM];
 
 double ind_L[MAX_ELEM], cap_C[MAX_ELEM]; /*guarda os valores de indutancia e capacitancia p/ serem utilizados no modelo de peq. sinais*/ 
 
@@ -195,7 +195,7 @@ int main(void)
     txt[0]=toupper(txt[0]);
     tipo=txt[0];
     sscanf(txt,"%10s",netlist[ne].nome);
-    p=txt+strlen(netlist[ne].nome); /* Inicio dos parametros */
+    p=txt+strlen(netlist[ne].nome);/* Inicio dos parametros */
     /* O que e lido depende do tipo */
     if (tipo=='R' || tipo=='L' || tipo=='C' || tipo=='I' || tipo=='V') {
       sscanf(p,"%10s%10s%lg",na,nb,&netlist[ne].valor);
@@ -218,8 +218,8 @@ int main(void)
 	}
 	
 	else if (tipo=='K') {
-		sscanf(p,"%10s%10s%lg",acop_K.lA,acop_K.lB,&netlist[ne].valor);
-		printf("%s %s %s %g\n",netlist[ne].nome,acop_K.lA,acop_K.lB,netlist[ne].valor);
+		sscanf(p,"%10s%10s%lg",acop_K[ne].lA,acop_K[ne].lB,&netlist[ne].valor);
+		printf("%s %s %s %g\n",netlist[ne].nome,acop_K[ne].lA,acop_K[ne].lB,netlist[ne].valor);
 	}
 	
     else if (tipo=='G' || tipo=='E' || tipo=='F' || tipo=='H') {
@@ -241,50 +241,49 @@ int main(void)
     
     else if (tipo=='M') {
     	nao_linear++;
-    	sscanf(p,"%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos.tipo,mos.comp,mos.larg,mos.vt0,mos.lambda,mos.gama,mos.phi,mos.ld);
-    	printf("%s %s %s %s %s %s %g %g %g %g %g %g %g %g",netlist[ne].nome,na,nb,nc,nd,mos.tipo,mos.comp,mos.larg,mos.vt0,mos.lambda,mos.gama,mos.phi,mos.ld);
+    	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
+    	printf("%s %s %s %s %s %s %s %s %g %g %g %g %g",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo[ne],mos[ne].comp,mos[ne].larg,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
     	/*ne_extra: quantidade de nós referentes ao elementos extras do modelo linearizado*/
     	ne_extra=ne;
     	//resistor RDS
-    	netlist[ne_extra].nome="RDS"+ne_extra;
+    	strcpy(netlist[ne_extra].nome,strcat("RDS","1"));
     	netlist[ne_extra].a=numero(na);
-    	netlist[ne_extra].c=numero(nc);
+    	netlist[ne_extra].b=numero(nc);
     	ne_extra++;
     	//fonte de corrente I0
-    	netlist[ne_extra].nome="IDS"+ne_extra;
+    	strcpy(netlist[ne_extra].nome,strcat("IDS","1"));
     	netlist[ne_extra].a=numero(na);
-    	netlist[ne_extra].c=numero(nc);
+    	netlist[ne_extra].b=numero(nc);
     	ne_extra++;
     	//transcondutancia GmVGS
-    	netlist[ne_extra].nome="GmVGS"+ne_extra;
+    	strcpy(netlist[ne_extra].nome,strcat("GMVGS","1"));
     	netlist[ne_extra].a=numero(na);
-    	netlist[ne_extra].c=numero(nc);
+    	netlist[ne_extra].b=numero(nc);
     	ne_extra++;
     	//transcondutancia GmbVBS
-    	netlist[ne_extra].nome="GmbVBS"+ne_extra;
+    	strcpy(netlist[ne_extra].nome,strcat("GMBGBS","1"));
     	netlist[ne_extra].a=numero(na);
-    	netlist[ne_extra].c=numero(nc);
+    	netlist[ne_extra].b=numero(nc);
     	ne_extra++;
     	//capacitancia CGD: vira resistor RGD
-    	netlist[ne_extra].nome="RCGD"+ne_extra;
-    	netlist[ne_extra].b=numero(nb);
-    	netlist[ne_extra].a=numero(na);
+    	strcpy(netlist[ne_extra].nome,strcat("RCGD","1"));
+    	netlist[ne_extra].a=numero(nb);
+    	netlist[ne_extra].b=numero(na);
     	netlist[ne_extra].valor=1e9;
     	ne_extra++;
     	//capacitancia CGS: vira resistor RGS
-    	netlist[ne_extra].nome="RCGS"+ne_extra;
-    	netlist[ne_extra].b=numero(nb);
-    	netlist[ne_extra].c=numero(nc);
+    	strcpy(netlist[ne_extra].nome,strcat("RCGS","1"));
+    	netlist[ne_extra].a=numero(nb);
+    	netlist[ne_extra].b=numero(nc);
     	netlist[ne_extra].valor=1e9;
     	ne_extra++;
 		//capacitancia CGB: vira resistor RGB
-    	netlist[ne_extra].nome="RCGB"+ne_extra;
-    	netlist[ne_extra].b=numero(nb);
-    	netlist[ne_extra].d=numero(nd);
+    	strcpy(netlist[ne_extra].nome,strcat("RCGB","1"));
+    	netlist[ne_extra].a=numero(nb);
+    	netlist[ne_extra].b=numero(nd);
     	netlist[ne_extra].valor=1e9;
     	ne_extra++;    	
     		
-		}
         
     }
     
@@ -346,21 +345,21 @@ int main(void)
       printf("%s %d %d %d %d\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d);
     }
     else if (tipo=='K') {
-      printf("%s %s %s %g\n",netlist[i].nome,acop_K.lA,acop_K.lB,netlist[i].valor);	
+      printf("%s %s %s %g\n",netlist[i].nome,acop_K[i].lA,acop_K[i].lB,netlist[i].valor);
+	}
     else if (tipo=='M') {
       //implementar estrutura de repet. aqui! 	
-      printf("%s %s %s %s",netlist[i].nome,netlist[i].a,netlist[i].c,calcular pelo NP);
-	  printf("%s %s %s %s",netlist[i+1].nome,netlist[i+1].a,netlist[i+1].c,calcular pelo NP);
-	  printf("%s %s %s %s",netlist[i+2].nome,netlist[i+2].a,netlist[i+2].c,calcular pelo NP);
-	  printf("%s %s %s %s",netlist[i+3].nome,netlist[i+3].a,netlist[i+3].c,calcular pelo NP);
+      printf("%s %s %s %s",netlist[i].nome,netlist[i].a,netlist[i].b,"calcular pelo NP");
+	  printf("%s %s %s %s",netlist[i+1].nome,netlist[i+1].a,netlist[i+1].b,"calcular pelo NP");
+	  printf("%s %s %s %s",netlist[i+2].nome,netlist[i+2].a,netlist[i+2].b,"calcular pelo NP");
+	  printf("%s %s %s %s",netlist[i+3].nome,netlist[i+3].a,netlist[i+3].b,"calcular pelo NP");
 	  
-	  printf("%s %s %s %g",netlist[i+4].nome,netlist[i+3].b,netlist[i+3].a,netlist[i+4].valor);
+	  printf("%s %s %s %g",netlist[i+4].nome,netlist[i+3].a,netlist[i+3].b,netlist[i+4].valor);
 	  
-	  printf("%s %s %s %g",netlist[i+5].nome,netlist[i+3].b,netlist[i+3].c,netlist[i+5].valor);
+	  printf("%s %s %s %g",netlist[i+5].nome,netlist[i+3].a,netlist[i+3].b,netlist[i+5].valor);
 	  
-	  printf("%s %s %s %g",netlist[i+6].nome,netlist[i+3].b,netlist[i+3].d,netlist[i+6].valor); 
-	  	
-	}  
+	  printf("%s %s %s %g",netlist[i+6].nome,netlist[i+3].a,netlist[i+3].b,netlist[i+6].valor); 
+	  	 
 	}
     if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O')
       printf("Corrente jx: %d\n",netlist[i].x);
@@ -369,10 +368,12 @@ int main(void)
   }
   getch();
   /* Monta o sistema nodal modificado */
-  if(nao_linear>0)
+  if(nao_linear>0) {
   	printf("O circuito é não linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos não lineares (que se decompõe em %d elementos linearizados).\n",nn,nv,ne,nao_linear,ne_extra);
-  else
+  }
+  else {
   	printf("O circuito é linear.  Tem %d nos, %d variaveis e %d elementos\n",nn,nv,ne);
+  }
   getch();
   /* Zera sistema */
   for (i=0; i<=nv; i++) {
