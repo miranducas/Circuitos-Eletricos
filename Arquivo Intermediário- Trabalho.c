@@ -246,19 +246,19 @@ int main(void)
 		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
     	ne++;
 		//resistor RDS
-    	strcpy(netlist[ne].nome,"RDS");
+    	strcpy(netlist[ne].nome,"MRDS");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
     	
     	ne++;
     	//fonte de corrente I0
-    	strcpy(netlist[ne].nome,"IDS");
+    	strcpy(netlist[ne].nome,"MIDS");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
     	
     	ne++;
     	//transcondutancia GmVGS
-    	strcpy(netlist[ne].nome,"GMVGS");
+    	strcpy(netlist[ne].nome,"MGMVGS");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
     	netlist[ne].c=numero(nb);
@@ -266,7 +266,7 @@ int main(void)
     	
     	ne++;
     	//transcondutancia GmbVBS
-    	strcpy(netlist[ne].nome,"GMBGBS");
+    	strcpy(netlist[ne].nome,"MGMBGBS");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
     	netlist[ne].c=numero(nd);
@@ -274,20 +274,20 @@ int main(void)
     	
     	ne++;
     	//capacitancia CGD
-    	strcpy(netlist[ne].nome,"CCGD");
+    	strcpy(netlist[ne].nome,"MCCGD");
     	netlist[ne].a=numero(nb);
     	netlist[ne].b=numero(na);
     	netlist[ne].valor=1e9;
     	ne++;
     	//capacitancia CGS
-    	strcpy(netlist[ne].nome,"CCGS");
+    	strcpy(netlist[ne].nome,"MCCGS");
     	netlist[ne].a=numero(nb);
     	netlist[ne].b=numero(nc);
     	netlist[ne].valor=1e9;
     	
     	ne++;
 		//capacitancia CGB
-    	strcpy(netlist[ne].nome,"CCGB");
+    	strcpy(netlist[ne].nome,"MCCGB");
     	netlist[ne].a=numero(nb);
     	netlist[ne].b=numero(nd);
     	netlist[ne].valor=1e9;  	
@@ -353,20 +353,22 @@ int main(void)
     else if (tipo=='K') {
       printf("%s %s %s %g\n",netlist[i].nome,acop_K[i].lA,acop_K[i].lB,netlist[i].valor);
 	}
-    /*else if (tipo=='M') {
-      //implementar estrutura de repet. aqui! 	
-      printf("%s %s %s %s",netlist[i].nome,netlist[i].a,netlist[i].b,"calcular pelo NP");
-	  printf("%s %s %s %s",netlist[i+1].nome,netlist[i+1].a,netlist[i+1].b,"calcular pelo NP");
-	  printf("%s %s %s %s",netlist[i+2].nome,netlist[i+2].a,netlist[i+2].b,"calcular pelo NP");
-	  printf("%s %s %s %s",netlist[i+3].nome,netlist[i+3].a,netlist[i+3].b,"calcular pelo NP");
-	  
-	  printf("%s %s %s %g",netlist[i+4].nome,netlist[i+3].a,netlist[i+3].b,netlist[i+4].valor);
-	  
-	  printf("%s %s %s %g",netlist[i+5].nome,netlist[i+3].a,netlist[i+3].b,netlist[i+5].valor);
-	  
-	  printf("%s %s %s %g",netlist[i+6].nome,netlist[i+3].a,netlist[i+3].b,netlist[i+6].valor); 
-	  	 
-	}*/
+	
+	else if (tipo=='M') {
+		if(netlist[i].nome[1]=='R'){
+			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		}
+		if(strcmp(netlist[i].nome,"MGMVGS")==0){
+			printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
+		}
+		if(strcmp(netlist[i].nome,"MGMBVBS")==0){
+			printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
+		}
+		if(netlist[i].nome[1]=='C'){
+			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		}
+	}
+	
     if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O')
       printf("Corrente jx: %d\n",netlist[i].x);
     else if (tipo=='H')
