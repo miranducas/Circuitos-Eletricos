@@ -13,7 +13,8 @@ Versao 1.0h - 18/6/2011 Estampas correspondendo a modelos
 Versao 1.0i - 03/11/2013 Correcoes em *p e saida com sistema singular.
 Versao 1.0j - 26/11/2015 Evita operacoes com zero.
 Versao 1.0k - 23/06/2016 Calcula P.O. com L, C e K (o acoplamento é ignorado, pois P.O. é análise DC)
-Versao 1.0l - 24/06/2016 Leitura do netlist para elemento MOS (precisamos agora atribuir valores iniciais para as tensões, e implementarmos newton raphson)
+Versao 1.0l - 24/06/2016 Leitura do netlist para elemento MOS 
+Versao 1.0m - 27/06/2016 Tensões iniciais aleatórias atribuídas (para NP) e verificação dos 3 modos de operação dos MOS em andamento...
 */
 
 /*
@@ -42,6 +43,7 @@ Os nos podem ser nomes
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
 #define MAX_LINHA 80
 #define MAX_NOME 11
 #define MAX_ELEM 50
@@ -99,7 +101,7 @@ double
    Metodo de Gauss-Jordan com condensacao pivotal */
 int resolversistema(void)
 {
-  int i,j,l,a,inc_L,inc_C;
+  int i,j,l,a;
   double t, p;
 
   for (i=1; i<=nv; i++) {
@@ -155,6 +157,42 @@ int numero(char *nome)
   else {
     return i; /* no ja conhecido */
   }
+}
+
+double verMOSCond(){ //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
+{
+	if(vd>vs){
+		
+		if(mos[ne].tipo=='N'){
+			
+			if((vg-vs)>vt) //corte
+				return 0;
+				
+			else if((vd-vs)<=(vg-vs-vt)){//triodo 
+			
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return (mos[ne].transK)*(mos[ne].comp/mos[ne].larg)*(2*(vg-vs-vt)-2*(vd-vs)+4*mos[ne].lambda*(vg-vs-vt)*(vd-vs)-3*mos[ne].lambda*(vd-vs)*(vd-vs));
+				
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return (mos[ne].transK)*(mos[ne].comp/mos[ne].larg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs)));
+					
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return (((mos[ne].transK)*(mos[ne].comp/mos[ne].larg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs))			 
+			}
+		}
+		else if(mos[ne].tipo=='P'){
+			invertido=1;	
+		}
+		
+	}
+	else if(vd<vs){
+		if(mos[ne].tipo=='P'){
+			
+		}
+		else if(mos[ne].tipo=='N'){
+			invertido=1;
+		}
+	}	
 }
 
 /*void clrscr() {
@@ -240,54 +278,61 @@ int main(void)
     }
     
     else if (tipo=='M') {
-    	
+    	srand(time(NULL));
     	nao_linear++;
     	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
 		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
     	ne++;
+		
 		//resistor RDS
-    	strcpy(netlist[ne].nome,"MRDS");
+		vd=rand()%10; vg=rand()%10; vs=rand()%10; vb=rand()%10; //valores iniciais aleatórios entre 0 e 10 para as tensões
+		vt=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-vb+vs)-sqrt(mos[ne].phi));//tensão de limiar "threshold"
+	
+    	strcpy(netlist[ne].nome,"MGds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	
+    	netlist[ne].valor=verMOSCond(vd,vg,vs,vt,mos[ne].tipo[0],'G'); 
     	ne++;
     	//fonte de corrente I0
-    	strcpy(netlist[ne].nome,"MIDS");
+    	strcpy(netlist[ne].nome,"MIds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
+    	netlist[ne].valor=verificaMOS(sqrt((rand()%100))/10);
     	
     	ne++;
     	//transcondutancia GmVGS
-    	strcpy(netlist[ne].nome,"MGMVGS");
+    	strcpy(netlist[ne].nome,"MGm");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
     	netlist[ne].c=numero(nb);
     	netlist[ne].d=numero(nc);
+    	netlist[ne].valor=verificaMOS(sqrt((rand()%100))/10);
     	
     	ne++;
     	//transcondutancia GmbVBS
-    	strcpy(netlist[ne].nome,"MGMBGBS");
+    	strcpy(netlist[ne].nome,"MGmb");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
     	netlist[ne].c=numero(nd);
     	netlist[ne].d=numero(nc);
+    	netlist[ne].valor=verificaMOS(sqrt((rand()%100))/10);
     	
     	ne++;
     	//capacitancia CGD
-    	strcpy(netlist[ne].nome,"MCCGD");
+    	strcpy(netlist[ne].nome,"MCgd");
     	netlist[ne].a=numero(nb);
     	netlist[ne].b=numero(na);
     	netlist[ne].valor=1e9;
     	ne++;
     	//capacitancia CGS
-    	strcpy(netlist[ne].nome,"MCCGS");
+    	strcpy(netlist[ne].nome,"MCgs");
     	netlist[ne].a=numero(nb);
     	netlist[ne].b=numero(nc);
     	netlist[ne].valor=1e9;
     	
     	ne++;
 		//capacitancia CGB
-    	strcpy(netlist[ne].nome,"MCCGB");
+    	strcpy(netlist[ne].nome,"MCgb");
     	netlist[ne].a=numero(nb);
     	netlist[ne].b=numero(nd);
     	netlist[ne].valor=1e9;  	
@@ -355,16 +400,19 @@ int main(void)
 	}
 	
 	else if (tipo=='M') {
-		if(netlist[i].nome[1]=='R'){
+		if(netlist[i].nome[1]=='G'){
 			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
 		}
-		if(strcmp(netlist[i].nome,"MGMVGS")==0){
+		else if(netlist[i].nome[1]=='I'){
+			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		}
+		else if(strcmp(netlist[i].nome,"MGm")==0){
 			printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
 		}
-		if(strcmp(netlist[i].nome,"MGMBVBS")==0){
+		else if(strcmp(netlist[i].nome,"MGmb")==0){
 			printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
 		}
-		if(netlist[i].nome[1]=='C'){
+		else if(netlist[i].nome[1]=='C'){
 			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
 		}
 	}
@@ -389,85 +437,116 @@ int main(void)
       Yn[i][j]=0;
   }
   /* Monta estampas */
+  /*while(controle da convergência fica aqui)*/
   for (i=1; i<=ne; i++) {
-    tipo=netlist[i].nome[0];
-    if (tipo=='R' || tipo=='L' || tipo=='C' ) {
-      g=1/netlist[i].valor;
-      Yn[netlist[i].a][netlist[i].a]+=g;
-      Yn[netlist[i].b][netlist[i].b]+=g;
-      Yn[netlist[i].a][netlist[i].b]-=g;
-      Yn[netlist[i].b][netlist[i].a]-=g;
-    }
-    else if (tipo=='G') {
-      g=netlist[i].valor;
-      Yn[netlist[i].a][netlist[i].c]+=g;
-      Yn[netlist[i].b][netlist[i].d]+=g;
-      Yn[netlist[i].a][netlist[i].d]-=g;
-      Yn[netlist[i].b][netlist[i].c]-=g;
-    }
-    else if (tipo=='I') {
-      g=netlist[i].valor;
-      Yn[netlist[i].a][nv+1]-=g;
-      Yn[netlist[i].b][nv+1]+=g;
-    }
-    else if (tipo=='V') {
-      Yn[netlist[i].a][netlist[i].x]+=1;
-      Yn[netlist[i].b][netlist[i].x]-=1;
-      Yn[netlist[i].x][netlist[i].a]-=1;
-      Yn[netlist[i].x][netlist[i].b]+=1;
-      Yn[netlist[i].x][nv+1]-=netlist[i].valor;
-    }
-    else if (tipo=='E') {
-      g=netlist[i].valor;
-      Yn[netlist[i].a][netlist[i].x]+=1;
-      Yn[netlist[i].b][netlist[i].x]-=1;
-      Yn[netlist[i].x][netlist[i].a]-=1;
-      Yn[netlist[i].x][netlist[i].b]+=1;
-      Yn[netlist[i].x][netlist[i].c]+=g;
-      Yn[netlist[i].x][netlist[i].d]-=g;
-    }
-    else if (tipo=='F') {
-      g=netlist[i].valor;
-      Yn[netlist[i].a][netlist[i].x]+=g;
-      Yn[netlist[i].b][netlist[i].x]-=g;
-      Yn[netlist[i].c][netlist[i].x]+=1;
-      Yn[netlist[i].d][netlist[i].x]-=1;
-      Yn[netlist[i].x][netlist[i].c]-=1;
-      Yn[netlist[i].x][netlist[i].d]+=1;
-    }
-    else if (tipo=='H') {
-      g=netlist[i].valor;
-      Yn[netlist[i].a][netlist[i].y]+=1;
-      Yn[netlist[i].b][netlist[i].y]-=1;
-      Yn[netlist[i].c][netlist[i].x]+=1;
-      Yn[netlist[i].d][netlist[i].x]-=1;
-      Yn[netlist[i].y][netlist[i].a]-=1;
-      Yn[netlist[i].y][netlist[i].b]+=1;
-      Yn[netlist[i].x][netlist[i].c]-=1;
-      Yn[netlist[i].x][netlist[i].d]+=1;
-      Yn[netlist[i].y][netlist[i].x]+=g;
-    }
-    else if (tipo=='O') {
-      Yn[netlist[i].a][netlist[i].x]+=1;
-      Yn[netlist[i].b][netlist[i].x]-=1;
-      Yn[netlist[i].x][netlist[i].c]+=1;
-      Yn[netlist[i].x][netlist[i].d]-=1;
-    }
-	
-	if (netlist[i].nome[0] != 'K') {
-#ifdef DEBUG
-	    /* Opcional: Mostra o sistema apos a montagem da estampa */
-	    printf("Sistema apos a estampa de %s\n",netlist[i].nome);
-	    for (k=1; k<=nv; k++) {
-	      for (j=1; j<=nv+1; j++)
-	        if (Yn[k][j]!=0) printf("%+3.1f ",Yn[k][j]);
-	        else printf(" ... ");
-	      printf("\n");
+	    tipo=netlist[i].nome[0];
+	    if (tipo=='R' || tipo=='L' || tipo=='C' ) {
+	      g=1/netlist[i].valor;
+	      Yn[netlist[i].a][netlist[i].a]+=g;
+	      Yn[netlist[i].b][netlist[i].b]+=g;
+	      Yn[netlist[i].a][netlist[i].b]-=g;
+	      Yn[netlist[i].b][netlist[i].a]-=g;
 	    }
-	    getch();
-	}
-#endif
-
+	    else if (tipo=='G') {
+	      g=netlist[i].valor;
+	      Yn[netlist[i].a][netlist[i].c]+=g;
+	      Yn[netlist[i].b][netlist[i].d]+=g;
+	      Yn[netlist[i].a][netlist[i].d]-=g;
+	      Yn[netlist[i].b][netlist[i].c]-=g;
+	    }
+	    else if (tipo=='I') {
+	      g=netlist[i].valor;
+	      Yn[netlist[i].a][nv+1]-=g;
+	      Yn[netlist[i].b][nv+1]+=g;
+	    }
+	    else if (tipo=='V') {
+	      Yn[netlist[i].a][netlist[i].x]+=1;
+	      Yn[netlist[i].b][netlist[i].x]-=1;
+	      Yn[netlist[i].x][netlist[i].a]-=1;
+	      Yn[netlist[i].x][netlist[i].b]+=1;
+	      Yn[netlist[i].x][nv+1]-=netlist[i].valor;
+	    }
+	    else if (tipo=='E') {
+	      g=netlist[i].valor;
+	      Yn[netlist[i].a][netlist[i].x]+=1;
+	      Yn[netlist[i].b][netlist[i].x]-=1;
+	      Yn[netlist[i].x][netlist[i].a]-=1;
+	      Yn[netlist[i].x][netlist[i].b]+=1;
+	      Yn[netlist[i].x][netlist[i].c]+=g;
+	      Yn[netlist[i].x][netlist[i].d]-=g;
+	    }
+	    else if (tipo=='F') {
+	      g=netlist[i].valor;
+	      Yn[netlist[i].a][netlist[i].x]+=g;
+	      Yn[netlist[i].b][netlist[i].x]-=g;
+	      Yn[netlist[i].c][netlist[i].x]+=1;
+	      Yn[netlist[i].d][netlist[i].x]-=1;
+	      Yn[netlist[i].x][netlist[i].c]-=1;
+	      Yn[netlist[i].x][netlist[i].d]+=1;
+	    }
+	    else if (tipo=='H') {
+	      g=netlist[i].valor;
+	      Yn[netlist[i].a][netlist[i].y]+=1;
+	      Yn[netlist[i].b][netlist[i].y]-=1;
+	      Yn[netlist[i].c][netlist[i].x]+=1;
+	      Yn[netlist[i].d][netlist[i].x]-=1;
+	      Yn[netlist[i].y][netlist[i].a]-=1;
+	      Yn[netlist[i].y][netlist[i].b]+=1;
+	      Yn[netlist[i].x][netlist[i].c]-=1;
+	      Yn[netlist[i].x][netlist[i].d]+=1;
+	      Yn[netlist[i].y][netlist[i].x]+=g;
+	    }
+	    else if (tipo=='O') {
+	      Yn[netlist[i].a][netlist[i].x]+=1;
+	      Yn[netlist[i].b][netlist[i].x]-=1;
+	      Yn[netlist[i].x][netlist[i].c]+=1;
+	      Yn[netlist[i].x][netlist[i].d]-=1;
+	    }
+		else if (tipo=='M') {
+		  	g=netlist[i].valor;  	
+			if(netlist[i].nome[1]=='G'){
+				Yn[netlist[i].a][netlist[i].a]+=g;
+		    	Yn[netlist[i].b][netlist[i].b]+=g;
+		        Yn[netlist[i].a][netlist[i].b]-=g;
+		        Yn[netlist[i].b][netlist[i].a]-=g;	
+			}
+			else if(netlist[i].nome[1]=='I'){
+				Yn[netlist[i].a][nv+1]-=g;
+	      		Yn[netlist[i].b][nv+1]+=g;
+			}
+			else if(strcmp(netlist[i].nome,"MGm")==0){
+				Yn[netlist[i].a][netlist[i].c]+=g;
+	      		Yn[netlist[i].b][netlist[i].d]+=g;
+	      		Yn[netlist[i].a][netlist[i].d]-=g;
+	      		Yn[netlist[i].b][netlist[i].c]-=g;
+			}
+			else if(strcmp(netlist[i].nome,"MGmb")==0){
+				Yn[netlist[i].a][netlist[i].c]+=g;
+	      		Yn[netlist[i].b][netlist[i].d]+=g;
+	      		Yn[netlist[i].a][netlist[i].d]-=g;
+	      		Yn[netlist[i].b][netlist[i].c]-=g;
+			}
+			else if(netlist[i].nome[1]=='C'){
+				g=1/g;
+				Yn[netlist[i].a][netlist[i].a]+=g;
+			    Yn[netlist[i].b][netlist[i].b]+=g;
+			    Yn[netlist[i].a][netlist[i].b]-=g;
+			    Yn[netlist[i].b][netlist[i].a]-=g;
+			}
+		}
+	/*	if (netlist[i].nome[0] != 'K') {
+	#ifdef DEBUG
+		    // Opcional: Mostra o sistema apos a montagem da estampa 
+		    printf("Sistema apos a estampa de %s\n",netlist[i].nome);
+		    for (k=1; k<=nv; k++) {
+		      for (j=1; j<=nv+1; j++)
+		        if (Yn[k][j]!=0) printf("%+3.1f ",Yn[k][j]);
+		        else printf(" ... ");
+		      printf("\n");
+		    }
+		    getch();
+		}
+	#endif*/
   }
   /* Resolve o sistema */
   if (resolversistema()) {
@@ -475,7 +554,7 @@ int main(void)
     exit;
   }
 #ifdef DEBUG
-  /* Opcional: Mostra o sistema resolvido */
+  /* Opcional: Mostra o sistema resolvido*/ 
   printf("Sistema resolvido:\n");
   for (i=1; i<=nv; i++) {
       for (j=1; j<=nv+1; j++)
@@ -485,6 +564,7 @@ int main(void)
     }
   getch();
 #endif
+
   /* Mostra solucao */
   printf("Solucao:\n");
   strcpy(txt,"Tensao");
