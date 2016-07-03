@@ -67,7 +67,8 @@ acoplamento acop_K[MAX_ELEM];
 
 typedef struct transitorMOS {
    char tipo[MAX_NOME],comp[MAX_NOME],larg[MAX_NOME];
-   double transK,vt0,lambda,gama,phi,ld;
+   double transK,vt0,lambda,gama,phi,ld,cp,lg;
+   int invertido;
 } transistorMOS;
 
 transistorMOS mos[MAX_ELEM];
@@ -95,7 +96,8 @@ FILE *arquivo;
 
 double
   g,
-  Yn[MAX_NOS+1][MAX_NOS+2];
+  vd,vs,vg,vb,vt,//tensões auxiliares do transistor MOS
+  Yn[MAX_NOS+1][MAX_NOS+2];//matriz nodal
 
 /* Resolucao de sistema de equacoes lineares.
    Metodo de Gauss-Jordan com condensacao pivotal */
@@ -160,38 +162,73 @@ int numero(char *nome)
 }
 
 double verMOSCond(){ //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
-{
 	if(vd>vs){
 		
-		if(mos[ne].tipo=='N'){
+		if(mos[ne].tipo[0]=='N' || mos[ne].tipo[0]=='P'){
 			
-			if((vg-vs)>vt) //corte
-				return 0;
+			if(mos[ne].tipo[0]=='P')
+				mos[ne].invertido=1;
+			
+			if((vg-vs)<vt) //corte
+				return 0;//em todos os 3 casos
 				
 			else if((vd-vs)<=(vg-vs-vt)){//triodo 
-			
 				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
-					return (mos[ne].transK)*(mos[ne].comp/mos[ne].larg)*(2*(vg-vs-vt)-2*(vd-vs)+4*mos[ne].lambda*(vg-vs-vt)*(vd-vs)-3*mos[ne].lambda*(vd-vs)*(vd-vs));
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg-vs-vt)-2*(vd-vs)+4*mos[ne].lambda*(vg-vs-vt)*(vd-vs)-3*mos[ne].lambda*(vd-vs)*(vd-vs));
 				
 				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
-					return (mos[ne].transK)*(mos[ne].comp/mos[ne].larg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs)));
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs)));
 					
 				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return (((mos[ne].transK)*(mos[ne].comp/mos[ne].larg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs))			 
+					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs));			 
 			}
-		}
-		else if(mos[ne].tipo=='P'){
-			invertido=1;	
+			
+			else if((vd-vs)>(vg-vs-vt)){//saturação				
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg-vs-vt)*(vg-vs-vt)*mos[ne].lambda;
+				
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs-vt)*(1+mos[ne].lambda*(vd-vs)));
+					
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs-vt)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs));
+			}
 		}
 		
 	}
 	else if(vd<vs){
-		if(mos[ne].tipo=='P'){
+		
+		if(mos[ne].tipo[0]=='P' || mos[ne].tipo[0]=='N'){
 			
+			if(mos[ne].tipo[0]=='N')
+				mos[ne].invertido=1;
+			
+			if((vg-vs)>vt) //corte
+				return 0;//em todos os 3 casos
+				
+			else if((vd-vs)>(vg-vs-vt)){//triodo 
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg+vs+vt)-2*(vs-vd)+4*mos[ne].lambda*(vg+vs+vt)*(vs-vd)-3*mos[ne].lambda*(vs-vd)*(vs-vd));
+				
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd)));
+					
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs));			 
+			}
+			
+			else if((vd-vs)<=(vg-vs-vt)){//saturação				
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg+vs+vt)*(vg+vs+vt)*mos[ne].lambda;
+				
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd)));
+					
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs));
+			}
 		}
-		else if(mos[ne].tipo=='N'){
-			invertido=1;
-		}
+		
 	}	
 }
 
@@ -285,19 +322,24 @@ int main(void)
     	ne++;
 		
 		//resistor RDS
-		vd=rand()%10; vg=rand()%10; vs=rand()%10; vb=rand()%10; //valores iniciais aleatórios entre 0 e 10 para as tensões
+		vd=rand()%10; vg=rand()%10; vs=rand()%10; vb=mos[ne].phi/2+vs; //valores iniciais aleatórios entre 0 e 10 para as tensões
 		vt=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-vb+vs)-sqrt(mos[ne].phi));//tensão de limiar "threshold"
-	
+		
+		//dar um jeito de retirar os termos "L=" e "W=" e deixar apenas a parte numérica
+		/*mos[ne].cp=1e-6;
+		mos[ne].lg=1e-6;*/
+		
     	strcpy(netlist[ne].nome,"MGds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].valor=verMOSCond(vd,vg,vs,vt,mos[ne].tipo[0],'G'); 
+    	netlist[ne].valor=verMOSCond(); 
+    	
     	ne++;
     	//fonte de corrente I0
     	strcpy(netlist[ne].nome,"MIds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].valor=verificaMOS(sqrt((rand()%100))/10);
+    	//netlist[ne].valor=BOTAR ALGO CERTO AQUI!!!!
     	
     	ne++;
     	//transcondutancia GmVGS
@@ -306,7 +348,7 @@ int main(void)
     	netlist[ne].b=numero(nc);
     	netlist[ne].c=numero(nb);
     	netlist[ne].d=numero(nc);
-    	netlist[ne].valor=verificaMOS(sqrt((rand()%100))/10);
+    	netlist[ne].valor=verMOSCond();
     	
     	ne++;
     	//transcondutancia GmbVBS
@@ -315,7 +357,7 @@ int main(void)
     	netlist[ne].b=numero(nc);
     	netlist[ne].c=numero(nd);
     	netlist[ne].d=numero(nc);
-    	netlist[ne].valor=verificaMOS(sqrt((rand()%100))/10);
+    	netlist[ne].valor=verMOSCond();
     	
     	ne++;
     	//capacitancia CGD
@@ -400,10 +442,10 @@ int main(void)
 	}
 	
 	else if (tipo=='M') {
-		if(netlist[i].nome[1]=='G'){
+		if(strcmp(netlist[ne].nome,"MRGds")==0){
 			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
 		}
-		else if(netlist[i].nome[1]=='I'){
+		else if(strcmp(netlist[ne].nome,"MIds")==0){
 			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
 		}
 		else if(strcmp(netlist[i].nome,"MGm")==0){
@@ -504,13 +546,13 @@ int main(void)
 	    }
 		else if (tipo=='M') {
 		  	g=netlist[i].valor;  	
-			if(netlist[i].nome[1]=='G'){
+			if(strcmp(netlist[ne].nome,"MRGds")==0){
 				Yn[netlist[i].a][netlist[i].a]+=g;
 		    	Yn[netlist[i].b][netlist[i].b]+=g;
 		        Yn[netlist[i].a][netlist[i].b]-=g;
 		        Yn[netlist[i].b][netlist[i].a]-=g;	
 			}
-			else if(netlist[i].nome[1]=='I'){
+			else if(strcmp(netlist[ne].nome,"MIds")==0){
 				Yn[netlist[i].a][nv+1]-=g;
 	      		Yn[netlist[i].b][nv+1]+=g;
 			}
