@@ -14,7 +14,8 @@ Versao 1.0i - 03/11/2013 Correcoes em *p e saida com sistema singular.
 Versao 1.0j - 26/11/2015 Evita operacoes com zero.
 Versao 1.0k - 23/06/2016 Calcula P.O. com L, C e K (o acoplamento é ignorado, pois P.O. é análise DC)
 Versao 1.0l - 24/06/2016 Leitura do netlist para elemento MOS 
-Versao 1.0m - 27/06/2016 Tensões iniciais aleatórias atribuídas (para NP) e verificação dos 3 modos de operação dos MOS em andamento...
+Versao 1.0m - 27/06/2016 Tensões iniciais aleatórias atribuídas (para NP) e verificação dos 3 modos de operação dos MOS 
+Versao 1.0n - 03/07/2016 Linearização dos transistores MOS para valores iniciais. Criação da função verMOSCond(). Falta resolver I0
 */
 
 /*
