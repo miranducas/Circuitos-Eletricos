@@ -319,20 +319,34 @@ int main(void)
     	nao_linear++;
     	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
 		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
-    	ne++;
-		
-		//resistor RDS
-		vd=rand()%10; vg=rand()%10; vs=rand()%10; vb=mos[ne].phi/2+vs; //valores iniciais aleatórios entre 0 e 10 para as tensões
-		vt=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-vb+vs)-sqrt(mos[ne].phi));//tensão de limiar "threshold"
-		
-		//dar um jeito de retirar os termos "L=" e "W=" e deixar apenas a parte numérica
+    	
+    	//dar um jeito de retirar os termos "L=" e "W=" e deixar apenas a parte numérica
 		/*mos[ne].cp=1e-6;
 		mos[ne].lg=1e-6;*/
+    	
+    	for(i=1;i<=4;i++){ //preenche todos os campos dos elementos extras lineares com os parâmetros do transistor
+    		strcpy(mos[ne+i].tipo,mos[ne].tipo);
+			mos[ne].cp=1e-6;
+			mos[ne].lg=1e-6;
+			mos[ne+i].transK=mos[ne].transK;
+			mos[ne+i].vt0=mos[ne].vt0;
+			mos[ne+i].lambda=mos[ne].lambda;
+			mos[ne+i].gama=mos[ne].gama;
+			mos[ne+i].phi=mos[ne].phi;
+			mos[ne+i].ld=mos[ne].ld;
+		}
+    	
+		vd=rand()%10; vg=rand()%10; vs=rand()%10; vb=mos[ne].phi/2+vs; //valores iniciais aleatórios entre 0 e 10 para as tensões
+		vt=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-(vb-vs))-sqrt(mos[ne].phi));//tensão de limiar "threshold"
+		printf("\nDEBUG:%g %g %g %g %g\n\n",vd,vg,vs,vb,vt);
 		
-    	strcpy(netlist[ne].nome,"MGds");
+		
+		ne++;
+		//resistor RDS
+    	strcpy(netlist[ne].nome,"MRGds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].valor=verMOSCond(); 
+    	netlist[ne].valor=verMOSCond();
     	
     	ne++;
     	//fonte de corrente I0
@@ -442,17 +456,17 @@ int main(void)
 	}
 	
 	else if (tipo=='M') {
-		if(strcmp(netlist[ne].nome,"MRGds")==0){
-			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		if(strcmp(netlist[i].nome,"MRGds")==0){
+			printf("%s %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
 		}
-		else if(strcmp(netlist[ne].nome,"MIds")==0){
-			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		else if(strcmp(netlist[i].nome,"MIds")==0){
+			printf("%s %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
 		}
 		else if(strcmp(netlist[i].nome,"MGm")==0){
-			printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
+			printf("%s %d %d %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
 		}
 		else if(strcmp(netlist[i].nome,"MGmb")==0){
-			printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
+			printf("%s %d %d %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
 		}
 		else if(netlist[i].nome[1]=='C'){
 			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
