@@ -99,6 +99,82 @@ double
   vd,vs,vg,vb,vt,//tensões auxiliares do transistor MOS
   Yn[MAX_NOS+1][MAX_NOS+2];//matriz nodal
 
+
+double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
+	if(vd>vs){
+		
+		if(mos[ne].tipo[0]=='N' || mos[ne].tipo[0]=='P'){
+			
+			if(mos[ne].tipo[0]=='P'){
+				mos[ne].invertido=1;
+			}
+			
+			if((vg-vs)<vt) //corte
+				return 0;//em todos os 3 casos
+				
+			else if((vd-vs)<=(vg-vs-vt)){//triodo 
+			
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg-vs-vt)-2*(vd-vs)+4*mos[ne].lambda*(vg-vs-vt)*(vd-vs)-3*mos[ne].lambda*(vd-vs)*(vd-vs)));
+	
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs))));
+			
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs)));			 
+			}
+			
+			else if((vd-vs)>(vg-vs-vt)){//saturação				
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg-vs-vt)*(vg-vs-vt)*mos[ne].lambda);
+				
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs-vt)*(1+mos[ne].lambda*(vd-vs))));
+					
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs-vt)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs)));
+			}
+		}
+		
+	}
+	else if(vd<vs){
+		
+		if(mos[ne].tipo[0]=='P' || mos[ne].tipo[0]=='N'){
+			
+			if(mos[ne].tipo[0]=='N'){
+				mos[ne].invertido=1;
+			}
+			
+			if((vg-vs)>vt) //corte
+				return 0;//em todos os 3 casos
+				
+			else if((vd-vs)>(vg-vs-vt)){//triodo 
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg+vs+vt)-2*(vs-vd)+4*mos[ne].lambda*(vg+vs+vt)*(vs-vd)-3*mos[ne].lambda*(vs-vd)*(vs-vd)));
+			
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd))));
+					
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs)));			 
+			}
+			
+			else if((vd-vs)<=(vg-vs-vt)){//saturação				
+				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg+vs+vt)*(vg+vs+vt)*mos[ne].lambda);
+				
+				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd))));
+					
+				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs)));
+			}
+		}
+		
+	}	
+}
+
+
 /* Resolucao de sistema de equacoes lineares.
    Metodo de Gauss-Jordan com condensacao pivotal */
 int resolversistema(void)
@@ -161,76 +237,7 @@ int numero(char *nome)
   }
 }
 
-double verMOSCond(){ //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
-	if(vd>vs){
-		
-		if(mos[ne].tipo[0]=='N' || mos[ne].tipo[0]=='P'){
-			
-			if(mos[ne].tipo[0]=='P')
-				mos[ne].invertido=1;
-			
-			if((vg-vs)<vt) //corte
-				return 0;//em todos os 3 casos
-				
-			else if((vd-vs)<=(vg-vs-vt)){//triodo 
-				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg-vs-vt)-2*(vd-vs)+4*mos[ne].lambda*(vg-vs-vt)*(vd-vs)-3*mos[ne].lambda*(vd-vs)*(vd-vs));
-				
-				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs)));
-					
-				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs));			 
-			}
-			
-			else if((vd-vs)>(vg-vs-vt)){//saturação				
-				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg-vs-vt)*(vg-vs-vt)*mos[ne].lambda;
-				
-				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs-vt)*(1+mos[ne].lambda*(vd-vs)));
-					
-				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vd-vs-vt)*(1+mos[ne].lambda*(vd-vs))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs));
-			}
-		}
-		
-	}
-	else if(vd<vs){
-		
-		if(mos[ne].tipo[0]=='P' || mos[ne].tipo[0]=='N'){
-			
-			if(mos[ne].tipo[0]=='N')
-				mos[ne].invertido=1;
-			
-			if((vg-vs)>vt) //corte
-				return 0;//em todos os 3 casos
-				
-			else if((vd-vs)>(vg-vs-vt)){//triodo 
-				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg+vs+vt)-2*(vs-vd)+4*mos[ne].lambda*(vg+vs+vt)*(vs-vd)-3*mos[ne].lambda*(vs-vd)*(vs-vd));
-				
-				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd)));
-					
-				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs));			 
-			}
-			
-			else if((vd-vs)<=(vg-vs-vt)){//saturação				
-				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg+vs+vt)*(vg+vs+vt)*mos[ne].lambda;
-				
-				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
-					return (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd)));
-					
-				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return (((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs));
-			}
-		}
-		
-	}	
-}
+
 
 /*void clrscr() {
   #ifdef WINDOWS
@@ -326,8 +333,8 @@ int main(void)
     	
     	for(i=1;i<=4;i++){ //preenche todos os campos dos elementos extras lineares com os parâmetros do transistor
     		strcpy(mos[ne+i].tipo,mos[ne].tipo);
-			mos[ne].cp=1e-6;
-			mos[ne].lg=1e-6;
+			mos[ne+i].cp=1e-6;
+			mos[ne+i].lg=1e-6;
 			mos[ne+i].transK=mos[ne].transK;
 			mos[ne+i].vt0=mos[ne].vt0;
 			mos[ne+i].lambda=mos[ne].lambda;
@@ -338,8 +345,6 @@ int main(void)
     	
 		vd=rand()%10; vg=rand()%10; vs=rand()%10; vb=mos[ne].phi/2+vs; //valores iniciais aleatórios entre 0 e 10 para as tensões
 		vt=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-(vb-vs))-sqrt(mos[ne].phi));//tensão de limiar "threshold"
-		printf("\nDEBUG:%g %g %g %g %g\n\n",vd,vg,vs,vb,vt);
-		
 		
 		ne++;
 		//resistor RDS
