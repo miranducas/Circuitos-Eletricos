@@ -16,6 +16,7 @@ Versao 1.0k - 23/06/2016 Calcula P.O. com L, C e K (o acoplamento é ignorado, p
 Versao 1.0l - 24/06/2016 Leitura do netlist para elemento MOS 
 Versao 1.0m - 27/06/2016 Tensões iniciais aleatórias atribuídas (para NP) e verificação dos 3 modos de operação dos MOS 
 Versao 1.0n - 03/07/2016 Linearização dos transistores MOS para valores iniciais. Criação da função verMOSCond(). Falta resolver I0
+Versao 1.0o - 06/07/2016 I0 "supostamente" resolvido
 */
 
 /*
@@ -355,13 +356,6 @@ int main(void)
     	netlist[ne].valor=verMOSCond();
     	
     	ne++;
-    	//fonte de corrente I0
-    	strcpy(netlist[ne].nome,"MIds");
-    	netlist[ne].a=numero(na);
-    	netlist[ne].b=numero(nc);
-    	//netlist[ne].valor=BOTAR ALGO CERTO AQUI!!!!
-    	
-    	ne++;
     	//transcondutancia GmVGS
     	strcpy(netlist[ne].nome,"MGm");
     	netlist[ne].a=numero(na);
@@ -378,6 +372,13 @@ int main(void)
     	netlist[ne].c=numero(nd);
     	netlist[ne].d=numero(nc);
     	netlist[ne].valor=verMOSCond();
+    	
+    	ne++;
+    	//fonte de corrente I0
+    	strcpy(netlist[ne].nome,"MIds");
+    	netlist[ne].a=numero(na);
+    	netlist[ne].b=numero(nc);
+    	netlist[ne].valor= -(netlist[ne-2].valor*(vg-vs)+netlist[ne-1].valor*(vb-vs));//I0 = -(Gm*vgs+Gmb*vbs), não sei se está certo!
     	
     	ne++;
     	//capacitancia CGD
