@@ -82,7 +82,7 @@ acoplamento acop_K[MAX_ELEM];
 
 typedef struct transitorMOS {
    char tipo[MAX_NOME];
-   double comp[MAX_NOME],larg[MAX_NOME],transK,vt0,lambda,gama,phi,ld,cp,lg;
+   double comp,larg,transK,vt0,lambda,gama,phi,ld;
    int invertido;
 } transistorMOS;
 
@@ -358,8 +358,8 @@ int main(void)
     	
     	for(i=1;i<=4;i++){ //preenche todos os campos dos elementos extras lineares com os parâmetros do transistor
     		strcpy(mos[ne+i].tipo,mos[ne].tipo);
-			mos[ne+i].cp=mos[ne].comp;
-			mos[ne+i].lg=mos[ne].larg;
+			mos[ne+i].comp=mos[ne].comp;
+			mos[ne+i].larg=mos[ne].larg;
 			mos[ne+i].transK=mos[ne].transK;
 			mos[ne+i].vt0=mos[ne].vt0;
 			mos[ne+i].lambda=mos[ne].lambda;
