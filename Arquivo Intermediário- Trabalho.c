@@ -81,8 +81,8 @@ typedef struct acoplamento {
 acoplamento acop_K[MAX_ELEM];
 
 typedef struct transitorMOS {
-   char tipo[MAX_NOME],comp[MAX_NOME],larg[MAX_NOME];
-   double transK,vt0,lambda,gama,phi,ld,cp,lg;
+   char tipo[MAX_NOME];
+   double comp[MAX_NOME],larg[MAX_NOME],transK,vt0,lambda,gama,phi,ld,cp,lg;
    int invertido;
 } transistorMOS;
 
@@ -283,6 +283,10 @@ int main(void)
   printf("Lendo netlist:\n");
   fgets(txt,MAX_LINHA,arquivo);
   printf("Titulo: %s",txt);
+  
+  char largura[11], comprimento[11], subLarg[10], subComp[10];
+  
+  
   while (fgets(txt,MAX_LINHA,arquivo)) { //leitura do netlist linha por linha
     ne++; /* Nao usa o netlist[0] */
     if (ne>MAX_ELEM) {
@@ -339,7 +343,13 @@ int main(void)
     else if (tipo=='M') {
     	srand(time(NULL));
     	nao_linear++;
-    	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
+    	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,comprimento,largura,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
+    	strncpy(subLarg, largura + 2, 9);
+    	subLarg[9] = '\0';
+    	subComp[9] = '\0';
+    	sscanf(subLarg, "%lg", &mos[ne].larg);
+     	sscanf(subLarg, "%lg", &mos[ne].comp);
+    	
 		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
     	//TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
     	//dar um jeito de retirar os termos "L=" e "W=" e deixar apenas a parte numérica
@@ -348,8 +358,8 @@ int main(void)
     	
     	for(i=1;i<=4;i++){ //preenche todos os campos dos elementos extras lineares com os parâmetros do transistor
     		strcpy(mos[ne+i].tipo,mos[ne].tipo);
-			mos[ne+i].cp=1e-6;
-			mos[ne+i].lg=1e-6;
+			mos[ne+i].cp=mos[ne].comp;
+			mos[ne+i].lg=mos[ne].larg;
 			mos[ne+i].transK=mos[ne].transK;
 			mos[ne+i].vt0=mos[ne].vt0;
 			mos[ne+i].lambda=mos[ne].lambda;
