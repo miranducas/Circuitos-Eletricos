@@ -82,7 +82,7 @@ acoplamento acop_K[MAX_ELEM];
 
 typedef struct transitorMOS {
    char tipo[MAX_NOME];
-   double comp,larg,transK,vt0,lambda,gama,phi,ld;
+   double cp,lg,transK,vt0,lambda,gama,phi,ld;
    int invertido;
 } transistorMOS;
 
@@ -348,10 +348,10 @@ int main(void)
     	strncpy(subLarg, comprimento + 2, 9);
     	subLarg[9] = '\0';
     	subComp[9] = '\0';
-    	sscanf(subLarg, "%lg", &mos[ne].larg);
-     	sscanf(subLarg, "%lg", &mos[ne].comp);
+    	sscanf(subLarg, "%lg", &mos[ne].lg);
+     	sscanf(subLarg, "%lg", &mos[ne].cp);
     	
-		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
+		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].cp,mos[ne].lg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
     	//TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
     	//dar um jeito de retirar os termos "L=" e "W=" e deixar apenas a parte numérica
 		/*mos[ne].cp=1e-6;
@@ -359,8 +359,8 @@ int main(void)
     	
     	for(i=1;i<=4;i++){ //preenche todos os campos dos elementos extras lineares com os parâmetros do transistor
     		strcpy(mos[ne+i].tipo,mos[ne].tipo);
-			mos[ne+i].comp=mos[ne].comp;
-			mos[ne+i].larg=mos[ne].larg;
+			mos[ne+i].cp=mos[ne].cp;
+			mos[ne+i].lg=mos[ne].lg;
 			mos[ne+i].transK=mos[ne].transK;
 			mos[ne+i].vt0=mos[ne].vt0;
 			mos[ne+i].lambda=mos[ne].lambda;
