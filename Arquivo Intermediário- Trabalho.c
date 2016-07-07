@@ -328,7 +328,7 @@ int main(void)
     	nao_linear++;
     	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
 		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].comp,mos[ne].larg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
-    	
+    	//TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
     	//dar um jeito de retirar os termos "L=" e "W=" e deixar apenas a parte numérica
 		/*mos[ne].cp=1e-6;
 		mos[ne].lg=1e-6;*/
