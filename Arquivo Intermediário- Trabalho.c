@@ -38,6 +38,24 @@ O amplificador operacional ideal tem a saida suspensa
 Os nos podem ser nomes
 */
 
+/*
+	char *palavra = "l=1e-1";
+	char subPalavra[5]; // onde 5 é o numero de caracteres que a nova palavra terá + 1 caractere para '\0' que finaliza a string
+	strncpy(subPalavra, palavra + 2, 4); //subpalavra recebe 4 caracteres a partir do caractere [2] (depois do =)
+	subPalavra[4] = '\0';
+	double valor;
+
+	sscanf(subPalavra, "%lg", &valor);
+	// subPalavra == 1e-1
+	// valor == 0.1
+}
+
+
+
+
+
+*/
+
 #define versao "1.0j - 26/11/2015"
 #include <stdio.h>
 #include <conio.h>
