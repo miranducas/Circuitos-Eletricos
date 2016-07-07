@@ -171,7 +171,7 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd))));
 					
 				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs)));			 
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs)));			 
 			}
 			
 			else if((vd-vs)<=(vg-vs-vt)){//saturação				
@@ -182,7 +182,7 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd))));
 					
 				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb-vs)));
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs-vd+vt)*(1+mos[ne].lambda*(vs-vd))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb+vs)));
 			}
 		}
 		
@@ -351,7 +351,7 @@ int main(void)
     	sscanf(subLarg, "%lg", &mos[ne].lg);
      	sscanf(subLarg, "%lg", &mos[ne].cp);
     	
-		printf("%s %s %s %s %s %s %s %s %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].cp,mos[ne].lg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
+		printf("%s %s %s %s %s %s %g %g %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].cp,mos[ne].lg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
     	//TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
     	//dar um jeito de retirar os termos "L=" e "W=" e deixar apenas a parte numérica
 		/*mos[ne].cp=1e-6;
