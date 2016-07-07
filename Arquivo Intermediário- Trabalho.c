@@ -48,11 +48,6 @@ Os nos podem ser nomes
 	sscanf(subPalavra, "%lg", &valor);
 	// subPalavra == 1e-1
 	// valor == 0.1
-}
-
-
-
-
 
 */
 
