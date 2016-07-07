@@ -345,6 +345,7 @@ int main(void)
     	nao_linear++;
     	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,comprimento,largura,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
     	strncpy(subLarg, largura + 2, 9);
+    	strncpy(subLarg, comprimento + 2, 9);
     	subLarg[9] = '\0';
     	subComp[9] = '\0';
     	sscanf(subLarg, "%lg", &mos[ne].larg);
