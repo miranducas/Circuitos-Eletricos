@@ -95,7 +95,7 @@ int
   nv, /* Variaveis */
   nn, /* Nos */
   i,j,k,
-  inc_L, inc_C,
+  inc_L, inc_C, tensaoMOS[4],
   ne_extra,nao_linear;
 
 char
@@ -375,8 +375,8 @@ int main(void)
 		ne++;
 		//resistor RDS
     	strcpy(netlist[ne].nome,"MRGds");
-    	netlist[ne].a=numero(na);
-    	netlist[ne].b=numero(nc);
+    	netlist[ne].a=numero(na); tensaoMOS[0]=nv; // 0 -> vd
+    	netlist[ne].b=numero(nc); tensaoMOS[2]=nv; // 2 -> vs
     	netlist[ne].valor=verMOSCond();
     	
     	ne++;
@@ -384,7 +384,7 @@ int main(void)
     	strcpy(netlist[ne].nome,"MGm");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].c=numero(nb);
+    	netlist[ne].c=numero(nb); tensaoMOS[1]=nv; // 1 -> vg
     	netlist[ne].d=numero(nc);
     	netlist[ne].valor=verMOSCond();
     	
@@ -393,7 +393,7 @@ int main(void)
     	strcpy(netlist[ne].nome,"MGmb");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].c=numero(nd);
+    	netlist[ne].c=numero(nd); tensaoMOS[3]=nv; // 3 -> vb
     	netlist[ne].d=numero(nc);
     	netlist[ne].valor=verMOSCond();
     	
@@ -402,7 +402,7 @@ int main(void)
     	strcpy(netlist[ne].nome,"MIds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].valor= -(netlist[ne-2].valor*(vg-vs)+netlist[ne-1].valor*(vb-vs));//I0 = -(Gm*vgs+Gmb*vbs), não sei se está certo!
+    	netlist[ne].valor= -(netlist[ne-3].valor*(vd-vs)+netlist[ne-1].valor*(vb-vs));//I0 = -(Gds*vds+Gmb*vbs), não sei se está certo!
     	
     	ne++;
     	//capacitancia CGD
@@ -590,7 +590,12 @@ int main(void)
 	      Yn[netlist[i].x][netlist[i].d]-=1;
 	    }
 		else if (tipo=='M') {
-		  	g=netlist[i].valor;  	
+			
+			if(/*botar alguma condição pra entrar aqui apenas a partir da segunda iteração do Newton-Raphson*/)
+				netlist[i].valor=verMOSCond();
+			
+			g=netlist[i].valor;  
+				
 			if(strcmp(netlist[ne].nome,"MRGds")==0){
 				Yn[netlist[i].a][netlist[i].a]+=g;
 		    	Yn[netlist[i].b][netlist[i].b]+=g;
@@ -613,7 +618,7 @@ int main(void)
 	      		Yn[netlist[i].a][netlist[i].d]-=g;
 	      		Yn[netlist[i].b][netlist[i].c]-=g;
 			}
-			else if(netlist[i].nome[1]=='C'){
+			else if(netlist[i].nome[1]=='C'){//não esquecer de manter os mesmos valores prs capacitores!!!
 				g=1/g;
 				Yn[netlist[i].a][netlist[i].a]+=g;
 			    Yn[netlist[i].b][netlist[i].b]+=g;
@@ -653,11 +658,25 @@ int main(void)
 #endif
 
   /* Mostra solucao */
-  printf("Solucao:\n");
-  strcpy(txt,"Tensao");
+  /*printf("Solucao:\n");
+  strcpy(txt,"Tensao");*/
   for (i=1; i<=nv; i++) {
-    if (i==nn+1) strcpy(txt,"Corrente");
-    printf("%s %s: %g\n",txt,lista[i],Yn[i][nv+1]);
+  	
+  	/*se nv estiver associada a alguma das 4 tensóes do MOS*/
+  	j=0;
+  	for(j=0;j<=3;j++){
+  		if(j==0 && tensaoMOS[j]==nv)
+  			vd=Yn[i][nv+1];
+  		else if(j==1 && tensaoMOS[j]==nv)
+  			vg=Yn[i][nv+1];
+		else if(j==2 && tensaoMOS[j]==nv)
+  			vs=Yn[i][nv+1];
+		else if(j==3 && tensaoMOS[j]==nv)
+  			vb=Yn[i][nv+1]; 		
+	}
+  			  	
+    /*if (i==nn+1) strcpy(txt,"Corrente");
+    printf("%s %s: %g\n",txt,lista[i],Yn[i][nv+1]);*/
   }
   getch();
   return 0;
