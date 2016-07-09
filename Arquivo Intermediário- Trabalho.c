@@ -17,6 +17,7 @@ Versao 1.0l - 24/06/2016 Leitura do netlist para elemento MOS
 Versao 1.0m - 27/06/2016 Tensões iniciais aleatórias atribuídas (para NP) e verificação dos 3 modos de operação dos MOS 
 Versao 1.0n - 03/07/2016 Linearização dos transistores MOS para valores iniciais. Criação da função verMOSCond(). Falta resolver I0
 Versao 1.0o - 06/07/2016 I0 "supostamente" resolvido
+Versao 1.0p - 09/07/1016 Newton-Raphson implementado(by fefa), porém, o programa está ficando preso em algum laço de repetição =(
 */
 
 /*
@@ -38,18 +39,6 @@ O amplificador operacional ideal tem a saida suspensa
 Os nos podem ser nomes
 */
 
-/*
-	char *palavra = "l=1e-1";
-	char subPalavra[5]; // onde 5 é o numero de caracteres que a nova palavra terá + 1 caractere para '\0' que finaliza a string
-	strncpy(subPalavra, palavra + 2, 4); //subpalavra recebe 4 caracteres a partir do caractere [2] (depois do =)
-	subPalavra[4] = '\0';
-	double valor;
-
-	sscanf(subPalavra, "%lg", &valor);
-	// subPalavra == 1e-1
-	// valor == 0.1
-
-*/
 
 #define versao "1.0j - 26/11/2015"
 #include <stdio.h>
@@ -95,8 +84,10 @@ int
   nv, /* Variaveis */
   nn, /* Nos */
   i,j,k,
-  inc_L, inc_C, tensaoMOS[4],/*tensaoMOS[]: vínculo entre nó e tensão (não confundir com valor de tensão!)*/
+  inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: vínculo entre nó e tensão (não confundir com valor de tensão!)*/
   ne_extra,nao_linear;
+  
+short contador =1, fim = 0,convergencia[5];
 
 char
 /* Foram colocados limites nos formatos de leitura para alguma protecao
@@ -111,7 +102,7 @@ FILE *arquivo;
 
 double
   g,
-  vd[MAX_ELEM][2],vs[MAX_ELEM][2],vg[MAX_ELEM][2],vb[MAX_ELEM][2],vt[MAX_ELEM][2]//tensões auxiliares do transistor MOS
+  vd[MAX_ELEM][2],vs[MAX_ELEM][2],vg[MAX_ELEM][2],vb[MAX_ELEM][2],vt[MAX_ELEM][2],//tensões auxiliares do transistor MOS
   Yn[MAX_NOS+1][MAX_NOS+2];//matriz nodal
 
 
@@ -593,18 +584,22 @@ int main(void)
 					for(j=0;j<=3;j++){
 						
 					  	if(j==0 && tensaoMOS[nao_linear][j]==nv){						  				
-					  		if (convergencia[nao_linear] == 0){vd[nao_linear][0] = vd[nao_linear][1];}
+					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vd[nao_linear][0] = vd[nao_linear][1];}
+					  		else {vd[nao_linear][0] = rand()%10;}
 						}
 					  	
 						else if(j==1 && tensaoMOS[nao_linear][j]==nv){						
-					  		if (convergencia[nao_linear] == 0){vg[nao_linear][0] = vg[nao_linear][1];}	
+					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vg[nao_linear][0] = vg[nao_linear][1];}
+							else {vd[nao_linear][0] = rand()%10;} 	
 					  	}
 					  	
 						else if(j==2 && tensaoMOS[nao_linear][j]==nv){						
-					  		if (convergencia[nao_linear] == 0){vs[nao_linear][0] = vs[nao_linear][1];}
+					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vs[nao_linear][0] = vs[nao_linear][1];}
+					  		else {vd[nao_linear][0] = rand()%10;}
 					  	}
 						else if(j==3 && tensaoMOS[nao_linear][j]==nv){
-							if (convergencia[nao_linear] == 0){vb[nao_linear][0] = vb[nao_linear][1];}
+							if (convergencia[nao_linear] == 0 && contador % 51 != 0){vb[nao_linear][0] = vb[nao_linear][1];}
+							else {vd[nao_linear][0] = rand()%10;}
 						}
 					}
 					vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
@@ -662,8 +657,8 @@ int main(void)
 	    getch();
 	    exit;
 	  }
-	#ifdef DEBUG
-	  /* Opcional: Mostra o sistema resolvido*/ 
+	/*#ifdef DEBUG
+	  /* Opcional: Mostra o sistema resolvido
 	  printf("Sistema resolvido:\n");
 	  for (i=1; i<=nv; i++) {
 	      for (j=1; j<=nv+1; j++)
@@ -672,7 +667,7 @@ int main(void)
 	      printf("\n");
 	    }
 	  getch();
-	#endif
+	#endif*/
 	
 	  for (i=1; i<=nv; i++) {
 	  	
@@ -712,7 +707,28 @@ int main(void)
 	  			  	
 	  }
 	  contador++;
-	  getch();
-	  return 0;
+	  for (i = 0; (i <= (nao_linear-1))&&(i != -1);){
+			if (convergencia[i] == 1) {i++;}
+			else {i = -1;}
+		}
+
+		if (i == nao_linear){fim = 1;}
+
+		if (contador == 501){fim = 1;}
+		
 	}
+	contador=0;
+	for(j = 0; j <= (nao_linear-1); i++){
+		if (convergencia[j] == 0){
+			contador++;
+		}
+	}
+	if(contador!=0)
+		printf("A solucao do sistema nao convergiu.\n");
+	else
+		printf("Solucao do Ponto de Operacao:\n");/*escrever num arquivo o resultado do ponto de operação*/
+	
+	getch();
+	  return 0;
+
 }
