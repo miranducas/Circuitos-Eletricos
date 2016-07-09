@@ -718,7 +718,7 @@ int main(void)
 		
 	}
 	contador=0;
-	for(j = 0; j <= (nao_linear-1); i++){
+	for(j = 0; j <= (nao_linear-1); j++){
 		if (convergencia[j] == 0){
 			contador++;
 		}
