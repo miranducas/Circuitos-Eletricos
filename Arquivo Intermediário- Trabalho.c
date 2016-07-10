@@ -335,7 +335,8 @@ int main(void)
     	srand(time(NULL));
     	nao_linear++;
     	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,comprimento,largura,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
-    	strncpy(subLarg, largura + 2, 9);
+    	//retira os termos "L=" e "W="
+		strncpy(subLarg, largura + 2, 9);
     	strncpy(subLarg, comprimento + 2, 9);
     	subLarg[9] = '\0';
     	subComp[9] = '\0';
@@ -363,8 +364,8 @@ int main(void)
 		ne++;
 		//resistor RDS
     	strcpy(netlist[ne].nome,"MRGds");
-    	netlist[ne].a=numero(na); tensaoMOS[nao_linear][0]=nv; // 0 -> vd[nao_linear]
-    	netlist[ne].b=numero(nc); tensaoMOS[nao_linear][2]=nv; // 2 -> vs[nao_linear]
+    	netlist[ne].a=numero(na); tensaoMOS[nao_linear][0]=netlist[ne].a; printf("\nvd:%d\n",tensaoMOS[nao_linear][0]);// 0 -> vd associado ao numero do no pela 1 vez
+    	netlist[ne].b=numero(nc); tensaoMOS[nao_linear][2]=netlist[ne].b; printf("\nvs:%d\n",tensaoMOS[nao_linear][2]);// 2 -> vs associado ao numero do no pela 1 vez
     	netlist[ne].valor=verMOSCond();
     	
     	ne++;
@@ -372,7 +373,7 @@ int main(void)
     	strcpy(netlist[ne].nome,"MGm");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].c=numero(nb); tensaoMOS[nao_linear][1]=nv; // 1 -> vg[nao_linear]
+    	netlist[ne].c=numero(nb); tensaoMOS[nao_linear][1]=netlist[ne].c; printf("\nvg:%d\n",tensaoMOS[nao_linear][1]);// 1 -> vg associado ao numero do no pela 1 vez
     	netlist[ne].d=numero(nc);
     	netlist[ne].valor=verMOSCond();
     	
@@ -381,7 +382,7 @@ int main(void)
     	strcpy(netlist[ne].nome,"MGmb");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].c=numero(nd); tensaoMOS[nao_linear][3]=nv; // 3 -> vb[nao_linear]
+    	netlist[ne].c=numero(nd); tensaoMOS[nao_linear][3]=netlist[ne].c; printf("\nvb:%d\n",tensaoMOS[nao_linear][3]);// 3 -> vb associado ao numero do no pela 1 vez
     	netlist[ne].d=numero(nc);
     	netlist[ne].valor=verMOSCond();
     	
@@ -583,23 +584,23 @@ int main(void)
 				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
 					for(j=0;j<=3;j++){
 						
-					  	if(j==0 && tensaoMOS[nao_linear][j]==nv){						  				
+					  	if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
 					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vd[nao_linear][0] = vd[nao_linear][1];}
 					  		else {vd[nao_linear][0] = rand()%10;}
 						}
 					  	
-						else if(j==1 && tensaoMOS[nao_linear][j]==nv){						
+						else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
 					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vg[nao_linear][0] = vg[nao_linear][1];}
-							else {vd[nao_linear][0] = rand()%10;} 	
+							else {vg[nao_linear][0] = rand()%10;} 	
 					  	}
 					  	
-						else if(j==2 && tensaoMOS[nao_linear][j]==nv){						
+						else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
 					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vs[nao_linear][0] = vs[nao_linear][1];}
-					  		else {vd[nao_linear][0] = rand()%10;}
+					  		else {vs[nao_linear][0] = rand()%10;}
 					  	}
-						else if(j==3 && tensaoMOS[nao_linear][j]==nv){
+						else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
 							if (convergencia[nao_linear] == 0 && contador % 51 != 0){vb[nao_linear][0] = vb[nao_linear][1];}
-							else {vd[nao_linear][0] = rand()%10;}
+							else {vb[nao_linear][0] = rand()%10;}
 						}
 					}
 					vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
@@ -673,29 +674,28 @@ int main(void)
 	  	
 	  	/*se nv estiver associada a alguma das 4 tensóes de cada um dos MOSFETS*/
 	  	/*i: roda o numero de variáveis do sistema, j: roda as 4 tensões de cada MOS, k: roda o numero de MOS(qtde de elementos nao lineares no circuito)*/
-	  	j=0;
 	  	for(k=1;k<=nao_linear;k++){
 	  		
 			  for(j=0;j<=3;j++){
 	
-		  		if(j==0 && tensaoMOS[k][j]==nv){
+		  		if(j==0 && tensaoMOS[k][j]==i){
 		  			vd[k][1]=Yn[i][nv+1];
 		  			if (fabs(vd[k][0] - vd[k][1]) < 1) {convergencia[k] = 1;}
 		  			if (convergencia[k] == 0){vd[k][0] = vd[k][1];}
 		  		}
 		  			
-		  		else if(j==1 && tensaoMOS[k][j]==nv){
+		  		else if(j==1 && tensaoMOS[k][j]==i){
 		  			vg[k][1]=Yn[i][nv+1];
 		  			if (fabs(vg[k][0] - vg[k][1]) < 1) {convergencia[k] = 1;}
 		  			if (convergencia[k] == 0){vg[k][0] = vg[k][1];}
 		  		}
 		  			
-				else if(j==2 && tensaoMOS[k][j]==nv){
+				else if(j==2 && tensaoMOS[k][j]==i){
 		  			vs[k][1]=Yn[i][nv+1];
 		  			if (fabs(vs[k][0] - vs[k][1]) < 1) {convergencia[k] = 1;}
 		  			if (convergencia[k] == 0){vs[k][0] = vs[k][1];}
 		  		}
-				else if(j==3 && tensaoMOS[k][j]==nv){
+				else if(j==3 && tensaoMOS[k][j]==i){
 		  			vb[k][1]=Yn[i][nv+1]; 
 					if (fabs(vb[k][0] - vb[k][1]) < 1) {convergencia[k] = 1;}  
 					if (convergencia[k] == 0){vb[k][0] = vb[k][1];}
