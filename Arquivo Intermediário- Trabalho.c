@@ -685,7 +685,7 @@ int main(void)
                 			{convergencia[k] = 1;}
                 			else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<0.5))
                     				{convergencia[k] = 1;}                	
-                    		else 
+                    			else 
                 				{(convergencia[k] = 0);
                           			vd[k][0] = vd[k][1];}
 		  		}
@@ -735,7 +735,7 @@ int main(void)
 
 		if (i == nao_linear){fim = 1;}
 
-		if (contador == 501){fim = 1;}
+		if (contador == 510){fim = 1;}
 		
 	}
 	printf("%d iteracoes foram realizadas.\n",contador);
