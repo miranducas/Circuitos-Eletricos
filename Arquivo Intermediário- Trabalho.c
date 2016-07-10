@@ -728,7 +728,7 @@ int main(void)
 	  			  	
 	  }
 	  contador++;
-	  for (i = 0; (i <= (4*nao_linear-1))&&(i != -1);){
+	  for (i = 1; (i <= (4*nao_linear))&&(i != -1);){
 			if (convergencia[i] == 1) {i++;}
 			else {i = -1;}
 		}
