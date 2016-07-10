@@ -679,7 +679,7 @@ int main(void)
 	  		
 			  for(j=0;j<=3;j++){
 	
-		  		if(j==0 && tensaoMOS[k][j]==i){
+		  		if(j==0 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vd[k][1]=Yn[i][nv+1];
 		  			if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 0.5))
                 			{convergencia[k] = 1;}
@@ -690,7 +690,7 @@ int main(void)
                           			vd[k][0] = vd[k][1];}
 		  		}
 		  			
-		  		else if(j==1 && tensaoMOS[k][j]==i){
+		  		else if(j==1 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vg[k][1]=Yn[i][nv+1];
 		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 0.5))
                 				{convergencia[k] = 1;}
@@ -701,7 +701,7 @@ int main(void)
                           			vg[k][0] = vg[k][1];}
 		  		}
 		  			
-				else if(j==2 && tensaoMOS[k][j]==i){
+				else if(j==2 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vs[k][1]=Yn[i][nv+1];
 		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 0.5))
                 				{convergencia[k] = 1;}
@@ -711,7 +711,7 @@ int main(void)
                         			{(convergencia[k] = 0);
                           			vs[k][0] = vs[k][1];}
 		  		}
-				else if(j==3 && tensaoMOS[k][j]==i){
+				else if(j==3 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vb[k][1]=Yn[i][nv+1];
 		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 0.5))
                 				{convergencia[k] = 1;}
@@ -746,7 +746,7 @@ int main(void)
 		}
 	}
 	if(contador!=0)
-		printf("%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador);
+		printf("%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador-1);
 	else
 		printf("Solucao do Ponto de Operacao:\n");/*escrever num arquivo o resultado do ponto de operação*/
 	
