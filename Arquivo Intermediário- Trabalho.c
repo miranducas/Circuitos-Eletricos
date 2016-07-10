@@ -681,10 +681,10 @@ int main(void)
 		  		if(j==0 && tensaoMOS[k][j]==i){
 		  			vd[k][1]=Yn[i][nv+1];
 		  			if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 0.5))
-                				{convergencia[k] = 1;}
-                			else if (((vd[k][1]) <= 1) && (fabs((vd[k][1]-vd[k][0]))<0.5 )
+                			{convergencia[k] = 1;}
+                			else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<0.5))
                     				{convergencia[k] = 1;}                	
-                    			else 
+                    		else 
                 				{(convergencia[k] = 0);
                           			vd[k][0] = vd[k][1];}
 		  		}
@@ -693,7 +693,7 @@ int main(void)
 		  			vg[k][1]=Yn[i][nv+1];
 		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 0.5))
                 				{convergencia[k] = 1;}
-                			else if (((vg[k][1]) <= 1) && (fabs((vg[k][1]-vg[k][0]))<0.5 )
+                			else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<0.5))
                     				{convergencia[k] = 1;}                	
                     			else 
                         			{(convergencia[k] = 0);
@@ -704,7 +704,7 @@ int main(void)
 		  			vs[k][1]=Yn[i][nv+1];
 		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 0.5))
                 				{convergencia[k] = 1;}
-                			else if (((vs[k][1]) <= 1) && (fabs((vs[k][1]-vs[k][0]))<0.5 )
+                			else if ((vs[k][1] <= 1) && (fabs(vs[k][1]-vs[k][0])<0.5 ))
                     				{convergencia[k] = 1;}                	
                     			else 
                         			{(convergencia[k] = 0);
@@ -714,7 +714,7 @@ int main(void)
 		  			vb[k][1]=Yn[i][nv+1];
 		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 0.5))
                 				{convergencia[k] = 1;}
-                			else if (((vb[k][1]) <= 1) && (fabs((vb[k][1]-vb[k][0]))<0.5 )
+                			else if ((vb[k][1] <= 1) && (fabs(vb[k][1]-vb[k][0])<0.5 ))
                     				{convergencia[k] = 1;}                	
                     			else 
                         			{(convergencia[k] = 0);
