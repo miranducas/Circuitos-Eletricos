@@ -680,26 +680,46 @@ int main(void)
 	
 		  		if(j==0 && tensaoMOS[k][j]==i){
 		  			vd[k][1]=Yn[i][nv+1];
-		  			if (fabs(vd[k][0] - vd[k][1]) < 1) {convergencia[k] = 1;}
-		  			if (convergencia[k] == 0){vd[k][0] = vd[k][1];}
+		  			if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 0.5))
+                				{convergencia[k] = 1;}
+                			else if (((vd[k][1]) <= 1) && (fabs((vd[k][1]-vd[k][0]))<0.5 )
+                    				{convergencia[k] = 1;}                	
+                    			else 
+                				{(convergencia[k] = 0);
+                          			vd[k][0] = vd[k][1];}
 		  		}
 		  			
 		  		else if(j==1 && tensaoMOS[k][j]==i){
 		  			vg[k][1]=Yn[i][nv+1];
-		  			if (fabs(vg[k][0] - vg[k][1]) < 1) {convergencia[k] = 1;}
-		  			if (convergencia[k] == 0){vg[k][0] = vg[k][1];}
+		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 0.5))
+                				{convergencia[k] = 1;}
+                			else if (((vg[k][1]) <= 1) && (fabs((vg[k][1]-vg[k][0]))<0.5 )
+                    				{convergencia[k] = 1;}                	
+                    			else 
+                        			{(convergencia[k] = 0);
+                          			vg[k][0] = vg[k][1];}
 		  		}
 		  			
 				else if(j==2 && tensaoMOS[k][j]==i){
 		  			vs[k][1]=Yn[i][nv+1];
-		  			if (fabs(vs[k][0] - vs[k][1]) < 1) {convergencia[k] = 1;}
-		  			if (convergencia[k] == 0){vs[k][0] = vs[k][1];}
+		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 0.5))
+                				{convergencia[k] = 1;}
+                			else if (((vs[k][1]) <= 1) && (fabs((vs[k][1]-vs[k][0]))<0.5 )
+                    				{convergencia[k] = 1;}                	
+                    			else 
+                        			{(convergencia[k] = 0);
+                          			vs[k][0] = vs[k][1];}
 		  		}
 				else if(j==3 && tensaoMOS[k][j]==i){
-		  			vb[k][1]=Yn[i][nv+1]; 
-					if (fabs(vb[k][0] - vb[k][1]) < 1) {convergencia[k] = 1;}  
-					if (convergencia[k] == 0){vb[k][0] = vb[k][1];}
-				}
+		  			vb[k][1]=Yn[i][nv+1];
+		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 0.5))
+                				{convergencia[k] = 1;}
+                			else if (((vb[k][1]) <= 1) && (fabs((vb[k][1]-vb[k][0]))<0.5 )
+                    				{convergencia[k] = 1;}                	
+                    			else 
+                        			{(convergencia[k] = 0);
+                          			vb[k][0] = vb[k][1];}
+		  		}
 				
 			}
 			
