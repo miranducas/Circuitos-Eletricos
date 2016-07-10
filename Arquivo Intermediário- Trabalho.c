@@ -87,7 +87,8 @@ int
   inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: vínculo entre nó e tensão (não confundir com valor de tensão!)*/
   ne_extra,nao_linear;
   
-short contador =1, fim = 0, convergencia[MAX_ELEM];
+short contador =1, fim = 0;
+int   convergencia[MAX_ELEM];
 
 char
 /* Foram colocados limites nos formatos de leitura para alguma protecao
