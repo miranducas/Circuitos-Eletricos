@@ -728,12 +728,12 @@ int main(void)
 	  			  	
 	  }
 	  contador++;
-	  for (i = 0; (i <= (nao_linear-1))&&(i != -1);){
+	  for (i = 0; (i <= (4*nao_linear-1))&&(i != -1);){
 			if (convergencia[i] == 1) {i++;}
 			else {i = -1;}
 		}
 
-		if (i == nao_linear){fim = 1;}
+		if (i == 4*nao_linear){fim = 1;}
 
 		if (contador == 510){fim = 1;}
 		
