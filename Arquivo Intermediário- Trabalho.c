@@ -17,7 +17,7 @@ Versao 1.0l - 24/06/2016 Leitura do netlist para elemento MOS
 Versao 1.0m - 27/06/2016 Tensões iniciais aleatórias atribuídas (para NP) e verificação dos 3 modos de operação dos MOS 
 Versao 1.0n - 03/07/2016 Linearização dos transistores MOS para valores iniciais. Criação da função verMOSCond(). Falta resolver I0
 Versao 1.0o - 06/07/2016 I0 "supostamente" resolvido
-Versao 1.0p - 09/07/1016 Newton-Raphson implementado(by fefa), porém, o programa está ficando preso em algum laço de repetição =(
+Versao 1.0p - 09/07/1016 Newton-Raphson implementado(by fefa), porém, os circuitos com elementos MOS não convergem....
 */
 
 /*
@@ -270,7 +270,7 @@ int main(void)
     printf("Arquivo %s inexistente\n",nomearquivo);
     goto denovo;
   }
-  printf("\nAnálise no Ponto de Operação (P.O.)\n\n");
+  printf("\nAnalise no Ponto de Operacao (P.O.)\n\n");
   printf("Lendo netlist:\n");
   fgets(txt,MAX_LINHA,arquivo);
   printf("Titulo: %s",txt);
@@ -500,10 +500,10 @@ int main(void)
   getch();
   /* Monta o sistema nodal modificado */
   if(nao_linear>0) {
-  	printf("O circuito é não linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos não lineares (que se decompõe em %d elementos linearizados).\n",nn,nv,ne-8*nao_linear,nao_linear,nao_linear*7);
+  	printf("O circuito e não linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos nao lineares (que se decompoe em %d elementos linearizados).\n",nn,nv,ne-8*nao_linear,nao_linear,nao_linear*7);
   }
   else {
-  	printf("O circuito é linear.  Tem %d nos, %d variaveis e %d elementos\n",nn,nv,ne);
+  	printf("O circuito e linear.  Tem %d nos, %d variaveis e %d elementos\n",nn,nv,ne);
   }
   getch();
   /* Zera sistema */
@@ -717,6 +717,7 @@ int main(void)
 		if (contador == 501){fim = 1;}
 		
 	}
+	printf("%d iteracoes foram realizadas.\n",contador);
 	contador=0;
 	for(j = 0; j <= (nao_linear-1); j++){
 		if (convergencia[j] == 0){
@@ -724,11 +725,16 @@ int main(void)
 		}
 	}
 	if(contador!=0)
-		printf("A solucao do sistema nao convergiu.\n");
+		printf("%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador);
 	else
 		printf("Solucao do Ponto de Operacao:\n");/*escrever num arquivo o resultado do ponto de operação*/
 	
+	strcpy(txt,"Tensao");
+	for (i=1; i<=nv; i++) {
+		if (i==nn+1) strcpy(txt,"Corrente");
+		printf("%s %s: %g\n",txt,lista[i],Yn[i][nv+1]);
+	}
 	getch();
-	  return 0;
+	return 0;
 
 }
