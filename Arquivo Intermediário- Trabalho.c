@@ -594,7 +594,7 @@ int main(void)
 		      Yn[netlist[i].x][netlist[i].d]-=1;
 		    }
 			else if (tipo=='M') {
-				nao_linear++;
+				
 				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
 					for(j=0;j<=3;j++){
 						
@@ -623,13 +623,14 @@ int main(void)
 				
 				g=netlist[i].valor;  
 					
-				if(strcmp(netlist[ne].nome,"MRGds")==0){
+				if(strcmp(netlist[i].nome,"MRGds")==0){
+					nao_linear++;
 					Yn[netlist[i].a][netlist[i].a]+=g;
 			    	Yn[netlist[i].b][netlist[i].b]+=g;
 			        Yn[netlist[i].a][netlist[i].b]-=g;
 			        Yn[netlist[i].b][netlist[i].a]-=g;	
 				}
-				else if(strcmp(netlist[ne].nome,"MIds")==0){
+				else if(strcmp(netlist[i].nome,"MIds")==0){
 					Yn[netlist[i].a][nv+1]-=g;
 		      		Yn[netlist[i].b][nv+1]+=g;
 				}
@@ -753,6 +754,7 @@ int main(void)
 	}
 	printf("%d iteracoes foram realizadas.\n",contador);
 	contador=0;
+	printf("\n%d\n",nao_linear);
 	for(j = 1; j <= 4*nao_linear; j++){
 		if (convergencia[j] == 0){contador++;}
 	}
