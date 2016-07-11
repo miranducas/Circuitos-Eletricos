@@ -600,21 +600,21 @@ int main(void)
 						
 					  	if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
 					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vd[nao_linear][0] = vd[nao_linear][1];}
-					  		else {vd[nao_linear][0] = rand()%10;}
+					  		else {vd[nao_linear][0] = rand()%21 - 10;}
 						}
 					  	
 						else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
 					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vg[nao_linear][0] = vg[nao_linear][1];}
-							else {vg[nao_linear][0] = rand()%10;} 	
+							else {vg[nao_linear][0] = rand()%21 - 10;} 	
 					  	}
 					  	
 						else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
 					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vs[nao_linear][0] = vs[nao_linear][1];}
-					  		else {vs[nao_linear][0] = rand()%10;}
+					  		else {vs[nao_linear][0] = rand()%21 - 10;}
 					  	}
 						else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
 							if (convergencia[nao_linear] == 0 && contador % 51 != 0){vb[nao_linear][0] = vb[nao_linear][1];}
-							else {vb[nao_linear][0] = rand()%10;}
+							else {vb[nao_linear][0] = rand()%21 - 10;}
 						}
 					}
 					vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
