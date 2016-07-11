@@ -146,7 +146,7 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(1+mos[ne].lambda*(vd[nao_linear][0]-vs[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb[nao_linear][0]+vs[nao_linear][0])));
 				
 				else if(strcmp(netlist[ne].nome,"MIds")==0)
-					return  (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(1+mos[ne].lambda*(vd[nao_linear][0]-vs[nao_linear][0]);
+					return  (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(1+mos[ne].lambda*(vd[nao_linear][0]-vs[nao_linear][0]));
 			}
 		}
 		
@@ -173,7 +173,7 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vd[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi+vb[nao_linear][0]-vs[nao_linear][0])));			 
 			
 				else if(strcmp(netlist[ne].nome,"MIds")==0)
-					return -((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0]))*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]])));
+					return -((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0]))*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0])));
 			}
 			
 			else if((vd[nao_linear][0]-vs[nao_linear][0])<=(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//saturação				
@@ -187,7 +187,7 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi-vs[nao_linear][0]+vb[nao_linear][0])));
 			    
 			    else if(strcmp(netlist[ne].nome,"MIds")==0)
-					return  -(mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]);
+					return  -(mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]));
 			}
 		}
 		
@@ -405,7 +405,7 @@ int main(void)
     	strcpy(netlist[ne].nome,"MIds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].valor= verMOSCond()-netlist[ne-2]*(vg[nao_linear][0]-vs[nao_linear][0])-netlist[ne-1]*(vb[nao_linear][0]-vs[nao_linear][0])-netlist[ne-3]*(vd[nao_linear][0]-vs[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
+    	netlist[ne].valor= verMOSCond()-netlist[ne-2].valor*(vg[nao_linear][0]-vs[nao_linear][0])-netlist[ne-1].valor*(vb[nao_linear][0]-vs[nao_linear][0])-netlist[ne-3].valor*(vd[nao_linear][0]-vs[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
     	
     	ne++;
     	//capacitancia CGD
