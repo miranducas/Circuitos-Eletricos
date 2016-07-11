@@ -375,7 +375,6 @@ int main(void)
     	
 		vd[nao_linear][0]=0.1; vg[nao_linear][0]=0.1; vs[nao_linear][0]=0.1; vb[nao_linear][0]=mos[ne].phi/2+vs[nao_linear][0]; //valores iniciais aleatórios entre 0 e 10 para as tensões
 		vt[nao_linear][0]=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[ne].phi));//tensão de limiar "threshold"
-		printf("\n%lg\n");
 		ne++;
 		//resistor RDS
     	strcpy(netlist[ne].nome,"MRGds");
@@ -384,7 +383,7 @@ int main(void)
     	netlist[ne].valor=verMOSCond();
     	
     	ne++;
-    	//transcondutancia GmvgS
+    	//transcondutancia Gm
     	strcpy(netlist[ne].nome,"MGm");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
@@ -393,7 +392,7 @@ int main(void)
     	netlist[ne].valor=verMOSCond();
     	
     	ne++;
-    	//transcondutancia GmbvbS
+    	//transcondutancia Gmb
     	strcpy(netlist[ne].nome,"MGmb");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
@@ -406,7 +405,7 @@ int main(void)
     	strcpy(netlist[ne].nome,"MIds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].valor= -(netlist[ne-3].valor*(vd[nao_linear][0]-vs[nao_linear][0])+netlist[ne-1].valor*(vb[nao_linear][0]-vs[nao_linear][0]));//I0 = -(Gds*vds+Gmb*vbs), não sei se está certo!
+    	netlist[ne].valor= verMOSCond()-netlist[ne-2]*(vg[nao_linear][0]-vs[nao_linear][0])-netlist[ne-1]*(vb[nao_linear][0]-vs[nao_linear][0])-netlist[ne-3]*(vd[nao_linear][0]-vs[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
     	
     	ne++;
     	//capacitancia CGD
