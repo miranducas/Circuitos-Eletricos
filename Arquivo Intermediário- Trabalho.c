@@ -164,30 +164,30 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 				
 			else if((vd[nao_linear][0]-vs[nao_linear][0])>(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//triodo 
 				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
-					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg[nao_linear][0]+vs[nao_linear][0]+vt[nao_linear][0])-2*(vs[nao_linear][0]-vd[nao_linear][0])+4*mos[ne].lambda*(vg[nao_linear][0]+vs[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-3*mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])));
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])-2*(vs[nao_linear][0]-vd[nao_linear][0])+4*mos[ne].lambda*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-3*mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])));
 			
 				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
 					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vd[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))));
 					
 				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vd[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb[nao_linear][0]+vs[nao_linear][0])));			 
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vd[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi+vb[nao_linear][0]-vs[nao_linear][0])));			 
 			
 				else if(strcmp(netlist[ne].nome,"MIds")==0)
-					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear]-vg[nao_linear]+vt[nao_linear])*(vs[nao_linear]-vd[nao_linear])-(vs[nao_linear]-vd[nao_linear])*(vs[nao_linear]-vd[nao_linear]))*(1+mos[ne].lambda*(vs[nao_linear-vd[nao_linear]])));
+					return -((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0]))*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]])));
 			}
 			
 			else if((vd[nao_linear][0]-vs[nao_linear][0])<=(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//saturação				
 				if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
-					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg[nao_linear][0]+vs[nao_linear][0]+vt[nao_linear][0])*(vg[nao_linear][0]+vs[nao_linear][0]+vt[nao_linear][0])*mos[ne].lambda);
+					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*mos[ne].lambda);
 				
 				else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
 					return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))));
 					
 				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
-					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi-vb[nao_linear][0]+vs[nao_linear][0])));
+					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi-vs[nao_linear][0]+vb[nao_linear][0])));
 			    
 			    else if(strcmp(netlist[ne].nome,"MIds")==0)
-					return  (mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0])
+					return  -(mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]);
 			}
 		}
 		
