@@ -50,7 +50,7 @@ Os nos podem ser nomes
 #include <time.h>
 #define MAX_LINHA 80
 #define MAX_NOME 11
-#define MAX_ELEM 50
+#define MAX_ELEM 200
 #define MAX_NOS 50
 #define TOLG 1e-9
 #define DEBUG
@@ -695,43 +695,43 @@ int main(void)
 		  		if(j==0 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vd[k][1]=Yn[i][nv+1];
 		  			if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 0.5))
-                			{convergencia[k] = 1;}
+                			{convergencia[4*k-3] = 1;}
                 			else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<0.5))
-                    				{convergencia[k] = 1;}                	
+                    				{convergencia[4*k-3] = 1;}                	
                     			else 
-                				{(convergencia[k] = 0);
+                				{(convergencia[4*k-3] = 0);
                           			vd[k][0] = vd[k][1];}
 		  		}
 		  			
 		  		else if(j==1 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vg[k][1]=Yn[i][nv+1];
 		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 0.5))
-                				{convergencia[k] = 1;}
+                				{convergencia[4*k-2] = 1;}
                 			else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<0.5))
-                    				{convergencia[k] = 1;}                	
+                    				{convergencia[4*k-2] = 1;}                	
                     			else 
-                        			{(convergencia[k] = 0);
+                        			{(convergencia[4*k-2] = 0);
                           			vg[k][0] = vg[k][1];}
 		  		}
 		  			
 				else if(j==2 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vs[k][1]=Yn[i][nv+1];
 		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 0.5))
-                				{convergencia[k] = 1;}
+                				{convergencia[4*k-1] = 1;}
                 			else if ((vs[k][1] <= 1) && (fabs(vs[k][1]-vs[k][0])<0.5 ))
-                    				{convergencia[k] = 1;}                	
+                    				{convergencia[4*k-1] = 1;}                	
                     			else 
-                        			{(convergencia[k] = 0);
+                        			{(convergencia[4*k-1] = 0);
                           			vs[k][0] = vs[k][1];}
 		  		}
 				else if(j==3 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vb[k][1]=Yn[i][nv+1];
 		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 0.5))
-                				{convergencia[k] = 1;}
+                				{convergencia[4*k] = 1;}
                 			else if ((vb[k][1] <= 1) && (fabs(vb[k][1]-vb[k][0])<0.5 ))
-                    				{convergencia[k] = 1;}                	
+                    				{convergencia[4*k] = 1;}                	
                     			else 
-                        			{(convergencia[k] = 0);
+                        			{(convergencia[4*k] = 0);
                           			vb[k][0] = vb[k][1];}
 		  		}
 				
@@ -753,13 +753,11 @@ int main(void)
 	}
 	printf("%d iteracoes foram realizadas.\n",contador);
 	contador=0;
-	for(j = 0; j <= (nao_linear-1); j++){
-		if (convergencia[j] == 0){
-			contador++;
-		}
+	for(j = 1; j <= 4*nao_linear; j++){
+		if (convergencia[j] == 0){contador++;}
 	}
 	if(contador!=0)
-		printf("%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador-1);
+		printf("%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador);
 	else
 		printf("Solucao do Ponto de Operacao:\n");/*escrever num arquivo o resultado do ponto de operação*/
 	
@@ -770,5 +768,5 @@ int main(void)
 	}
 	getch();
 	return 0;
-//
+
 }
