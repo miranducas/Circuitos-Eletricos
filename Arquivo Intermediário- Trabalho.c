@@ -601,22 +601,22 @@ int main(void)
 				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
 					for(j=0;j<=3;j++){
 						    if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
-					  	       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vd[nao_linear][0] = rand()%21 - 10;}
+					  	       if (convergencia[4*nao_linear-3] == 0 && contador % 251 != 0){vd[nao_linear][0] = rand()%21 - 10;}
 					  		     else {vd[nao_linear][0] = vd[nao_linear][1];}
 					      } 
 					  	
 				        else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
-        	  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vg[nao_linear][0] = rand()%21 - 10;}
+        	  		     if (convergencia[4*nao_linear-2] == 0 && contador % 251 != 0){vg[nao_linear][0] = rand()%21 - 10;}
 				    		     else {vg[nao_linear][0] = vg[nao_linear][1];} 	
 				        }
 					  	
 						    else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
-					  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vs[nao_linear][0] = rand()%21 - 10;}
+					  		     if (convergencia[4*nao_linear-1] == 0 && contador % 251 != 0){vs[nao_linear][0] = rand()%21 - 10;}
 					  		     else {vs[nao_linear][0] = vs[nao_linear][1];}
 					  	  }
 					
               	else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
-							       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vb[nao_linear][0] = rand()%21 - 10;}
+							       if (convergencia[4*nao_linear] == 0 && contador % 251 != 0){vb[nao_linear][0] = rand()%21 - 10;}
 							       else {vb[nao_linear][0] = vb[nao_linear][1];}
 						    }
 				  }
