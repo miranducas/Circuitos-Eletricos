@@ -352,11 +352,11 @@ int main(void)
     	sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,comprimento,largura,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
     	//retira os termos "L=" e "W="
 		strncpy(subLarg, largura + 2, 9);
-    	strncpy(subLarg, comprimento + 2, 9);
+    	strncpy(subComp, comprimento + 2, 9);
     	subLarg[9] = '\0';
     	subComp[9] = '\0';
     	sscanf(subLarg, "%lg", &mos[ne].lg);
-     	sscanf(subLarg, "%lg", &mos[ne].cp);
+     	sscanf(subComp, "%lg", &mos[ne].cp);
     	
 		printf("%s %s %s %s %s %s %g %g %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[ne].tipo,mos[ne].cp,mos[ne].lg,mos[ne].transK,mos[ne].vt0,mos[ne].lambda,mos[ne].gama,mos[ne].phi,mos[ne].ld);
     	//TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
@@ -527,7 +527,7 @@ int main(void)
       Yn[i][j]=0;
   }
   /* Monta estampas */
-  while(fim==0){
+  while(fim==0 && nao_linear != 0){
       nao_linear=0;
 	  for (i=1; i<=ne; i++) {
 		    tipo=netlist[i].nome[0];
@@ -597,26 +597,26 @@ int main(void)
 				
 				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
 					for(j=0;j<=3;j++){
-						
-					  	if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
-					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vd[nao_linear][0] = vd[nao_linear][1];}
-					  		else {vd[nao_linear][0] = rand()%21 - 10;}
-						}
+						    if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
+					  	       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vd[nao_linear][0] = vd[nao_linear][1];}
+					  		     else {vd[nao_linear][0] = rand()%21 - 10;}
+					      } 
 					  	
-						else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
-					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vg[nao_linear][0] = vg[nao_linear][1];}
-							else {vg[nao_linear][0] = rand()%21 - 10;} 	
-					  	}
+				        else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
+        	  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vg[nao_linear][0] = vg[nao_linear][1];}
+				    		     else {vg[nao_linear][0] = rand()%21 - 10;} 	
+				        }
 					  	
-						else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
-					  		if (convergencia[nao_linear] == 0 && contador % 51 != 0){vs[nao_linear][0] = vs[nao_linear][1];}
-					  		else {vs[nao_linear][0] = rand()%21 - 10;}
-					  	}
-						else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
-							if (convergencia[nao_linear] == 0 && contador % 51 != 0){vb[nao_linear][0] = vb[nao_linear][1];}
-							else {vb[nao_linear][0] = rand()%21 - 10;}
-						}
-					}
+						    else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
+					  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vs[nao_linear][0] = vs[nao_linear][1];}
+					  		     else {vs[nao_linear][0] = rand()%21 - 10;}
+					  	  }
+					
+              	else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
+							       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vb[nao_linear][0] = vb[nao_linear][1];}
+							       else {vb[nao_linear][0] = rand()%21 - 10;}
+						    }
+				  }
 					vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
 			    	verMOSCond();
 				}
@@ -694,25 +694,27 @@ int main(void)
 			  for(j=0;j<=3;j++){
 	
 		  		if(j==0 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
-		  			vd[k][1]=Yn[i][nv+1];
-		  			if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 0.5))
-                			{convergencia[4*k-3] = 1;}
-                			else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<0.5))
-                    				{convergencia[4*k-3] = 1;}                	
-                    			else 
-                				{(convergencia[4*k-3] = 0);
-                          			vd[k][0] = vd[k][1];}
+		  			  vd[k][1]=Yn[i][nv+1];
+		  			  if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 0.5))
+                	{convergencia[4*k-3] = 1;}
+              else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<0.5))
+            		  {convergencia[4*k-3] = 1;}                	
+              else {
+                  (convergencia[4*k-3] = 0);
+                  vd[k][0] = vd[k][1];
+              }
 		  		}
 		  			
 		  		else if(j==1 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
 		  			vg[k][1]=Yn[i][nv+1];
 		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 0.5))
-                				{convergencia[4*k-2] = 1;}
-                			else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<0.5))
-                    				{convergencia[4*k-2] = 1;}                	
-                    			else 
-                        			{(convergencia[4*k-2] = 0);
-                          			vg[k][0] = vg[k][1];}
+            		{convergencia[4*k-2] = 1;}
+            else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<0.5))
+            		{convergencia[4*k-2] = 1;}                	
+            else {
+               (convergencia[4*k-2] = 0);
+               vg[k][0] = vg[k][1];
+            }
 		  		}
 		  			
 				else if(j==2 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
@@ -749,7 +751,7 @@ int main(void)
 
 		if (i == 4*nao_linear){fim = 1;}
 
-		if (contador == 510){fim = 1;}
+		if (contador ==1000){fim = 1;}
 		
 	}
 	printf("%d iteracoes foram realizadas.\n",contador);
