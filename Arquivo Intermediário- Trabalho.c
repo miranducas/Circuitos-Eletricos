@@ -527,7 +527,7 @@ int main(void)
       Yn[i][j]=0;
   }
   /* Monta estampas */
-  while(fim==0 && nao_linear != 0){
+  while(fim==0){
       nao_linear=0;
 	  for (i=1; i<=ne; i++) {
 		    tipo=netlist[i].nome[0];
@@ -598,23 +598,23 @@ int main(void)
 				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
 					for(j=0;j<=3;j++){
 						    if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
-					  	       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vd[nao_linear][0] = vd[nao_linear][1];}
-					  		     else {vd[nao_linear][0] = rand()%21 - 10;}
+					  	       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vd[nao_linear][0] = rand()%21 - 10;}
+					  		     else {vd[nao_linear][0] = vd[nao_linear][1];}
 					      } 
 					  	
 				        else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
-        	  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vg[nao_linear][0] = vg[nao_linear][1];}
-				    		     else {vg[nao_linear][0] = rand()%21 - 10;} 	
+        	  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vg[nao_linear][0] = rand()%21 - 10;}
+				    		     else {vg[nao_linear][0] = vg[nao_linear][1];} 	
 				        }
 					  	
 						    else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
-					  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vs[nao_linear][0] = vs[nao_linear][1];}
-					  		     else {vs[nao_linear][0] = rand()%21 - 10;}
+					  		     if (convergencia[nao_linear] == 0 && contador % 251 != 0){vs[nao_linear][0] = rand()%21 - 10;}
+					  		     else {vs[nao_linear][0] = vs[nao_linear][1];}
 					  	  }
 					
               	else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
-							       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vb[nao_linear][0] = vb[nao_linear][1];}
-							       else {vb[nao_linear][0] = rand()%21 - 10;}
+							       if (convergencia[nao_linear] == 0 && contador % 251 != 0){vb[nao_linear][0] = rand()%21 - 10;}
+							       else {vb[nao_linear][0] = vb[nao_linear][1];}
 						    }
 				  }
 					vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
