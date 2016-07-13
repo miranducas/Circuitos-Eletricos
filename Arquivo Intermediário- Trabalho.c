@@ -57,7 +57,7 @@ Os nos podem ser nomes
 
 typedef struct elemento { /* Elemento do netlist */
   char nome[MAX_NOME];
-  double valor;
+  double valor,modulo,fase;
   int a,b,c,d,x,y;
 } elemento;
 
@@ -87,8 +87,8 @@ int
   inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: vínculo entre nó e tensão (não confundir com valor de tensão!)*/
   ne_extra,nao_linear;
   
-short contador =1, fim = 0, contadorMos = 0;
-int   convergencia[MAX_ELEM];
+short fim = 0, contadorMos = 0;
+int   contador =1, convergencia[MAX_ELEM];
 
 char
 /* Foram colocados limites nos formatos de leitura para alguma protecao
@@ -304,7 +304,7 @@ int main(void)
     sscanf(txt,"%10s",netlist[ne].nome);
     p=txt+strlen(netlist[ne].nome);/* Inicio dos parametros */
     /* O que e lido depende do tipo */
-    if (tipo=='R' || tipo=='L' || tipo=='C' || tipo=='I' || tipo=='V') {
+    if (tipo=='R' || tipo=='L' || tipo=='C') {
       sscanf(p,"%10s%10s%lg",na,nb,&netlist[ne].valor);
 	  if (tipo=='L') {     //substitui a indutancia pela baixa resistencia e armazena a indutancia em outra var
 		  inc_L++; 	
@@ -314,7 +314,7 @@ int main(void)
 	  }
 	  else if (tipo=='C') {     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
 		  inc_C++;
-                  cap_C[inc_C] = netlist[ne].valor;
+        	cap_C[inc_C] = netlist[ne].valor;
 		  netlist[ne].valor = 1e9;
 		  printf("%s %s %s %g\n",netlist[ne].nome,na,nb,cap_C[inc_C]);
 	  }
@@ -323,6 +323,11 @@ int main(void)
       netlist[ne].a=numero(na);
       netlist[ne].b=numero(nb);
 	}
+	else if (tipo=='I' || tipo=='V'){
+		sscanf(p,"%10s%10s%lg%lg%lg",na,nb,&netlist[ne].modulo,&netlist[ne].fase,&netlist[ne].valor);
+		netlist[ne].a=numero(na);
+		netlist[ne].b=numero(nb);
+		}
 	
 	else if (tipo=='K') {
 		sscanf(p,"%10s%10s%lg",acop_K[ne].lA,acop_K[ne].lB,&netlist[ne].valor);
@@ -479,6 +484,9 @@ int main(void)
     if (tipo=='R' || tipo=='L' || tipo=='C' || tipo=='I' || tipo=='V') {
       printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
     }
+    else if (tipo=='I' || tipo=='V'){
+    	printf("%s %d %d %g %g %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].modulo,netlist[i].fase,netlist[i].valor);
+	}
     else if (tipo=='G' || tipo=='E' || tipo=='F' || tipo=='H') {
       printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
     }
@@ -515,7 +523,7 @@ int main(void)
   getch();
   /* Monta o sistema nodal modificado */
   if(nao_linear>0) {
-  	printf("O circuito e não linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos nao lineares (que se decompoe em %d elementos linearizados).\n",nn,nv,ne-8*nao_linear,nao_linear,nao_linear*7);
+  	printf("O circuito e não linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos nao lineares (que se decompoe em %d elementos linearizados)., com ne=%d\n",nn,nv,ne-8*nao_linear,nao_linear,nao_linear*7,ne);
   }
   else {
   	printf("O circuito e linear.  Tem %d nos, %d variaveis e %d elementos\n",nn,nv,ne);
@@ -594,34 +602,32 @@ int main(void)
 		      Yn[netlist[i].x][netlist[i].d]-=1;
 		    }
 			else if (tipo=='M') {
-				contadorMos++;
-    				if(contadorMos % 7 == 1)
-    					{nao_linear++;}
-				
-				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
+					nao_linear++;//trabalhar o nao_linear	
+				if(contador>1){//entra aqui apenas a partir da segunda iteração do Newton-Raphson
 					for(j=0;j<=3;j++){
 						    if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
-					  	       if (convergencia[4*nao_linear-3] == 0 && contador % 251 != 0){vd[nao_linear][0] = rand()%21 - 10;}
+					  	       if (convergencia[4*nao_linear-3] == 0 && contador % 51 == 0){vd[nao_linear][0] = rand()%21 - 10;}
 					  		     else {vd[nao_linear][0] = vd[nao_linear][1];}
 					      } 
 					  	
 				        else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
-        	  		     if (convergencia[4*nao_linear-2] == 0 && contador % 251 != 0){vg[nao_linear][0] = rand()%21 - 10;}
+        	  		     if (convergencia[4*nao_linear-2] == 0 && contador % 51 == 0){vg[nao_linear][0] = rand()%21 - 10;}
 				    		     else {vg[nao_linear][0] = vg[nao_linear][1];} 	
 				        }
 					  	
 						    else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
-					  		     if (convergencia[4*nao_linear-1] == 0 && contador % 251 != 0){vs[nao_linear][0] = rand()%21 - 10;}
+					  		     if (convergencia[4*nao_linear-1] == 0 && contador % 51 == 0){vs[nao_linear][0] = rand()%21 - 10;}
 					  		     else {vs[nao_linear][0] = vs[nao_linear][1];}
 					  	  }
 					
               					    else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
-							       if (convergencia[4*nao_linear] == 0 && contador % 251 != 0){vb[nao_linear][0] = rand()%21 - 10;}
+							       if (convergencia[4*nao_linear] == 0 && contador % 51 == 0){vb[nao_linear][0] = rand()%21 - 10;}
 							       else {vb[nao_linear][0] = vb[nao_linear][1];}
 						    }
 				  }
 					vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
 			    	verMOSCond();
+			    	
 				}
 				
 				g=netlist[i].valor;  
@@ -643,6 +649,7 @@ int main(void)
 		      		Yn[netlist[i].b][netlist[i].c]-=g;
 				}
 				else if(strcmp(netlist[i].nome,"MGmb")==0){
+					nao_linear++;
 					Yn[netlist[i].a][netlist[i].c]+=g;
 		      		Yn[netlist[i].b][netlist[i].d]+=g;
 		      		Yn[netlist[i].a][netlist[i].d]-=g;
@@ -655,6 +662,7 @@ int main(void)
 				    Yn[netlist[i].a][netlist[i].b]-=g;
 				    Yn[netlist[i].b][netlist[i].a]-=g;
 				}
+				nao_linear--;
 			}
 		/*	if (netlist[i].nome[0] != 'K') {
 		#ifdef DEBUG
@@ -687,19 +695,27 @@ int main(void)
 	  getch();
 	#endif*/
 	
-	  for (i=1; i<=nv; i++) {
+	
+	
+	
+				//FIZ MUITAS MODIFICAÇOES A PARTIR DAQUI, EXPLICAR PARA O GRUPO!!
+	
+	
+	  for(k=1;k<=nao_linear;k++) {//inverti o for de k com o for de i, na minha cabeça faz mais sentido
 	  	
+	  		
 	  	/*se nv estiver associada a alguma das 4 tensóes de cada um dos MOSFETS*/
 	  	/*i: roda o numero de variáveis do sistema, j: roda as 4 tensões de cada MOS, k: roda o numero de MOS(qtde de elementos nao lineares no circuito)*/
-	  	for(k=1;k<=nao_linear;k++){
+	  	 for (i=1; i<=ne; i++){
+	  		if (netlist[i].nome[0]=='M'){//criado por Lucas as 01:00
 	  		
-			  for(j=0;j<=3;j++){
+	  				  for(j=0;j<=3;j++){
 	
-		  		if(j==0 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
+		  		if(j==0 && tensaoMOS[k][j]== netlist[i].a ){//incrementar o i, pq ele está rodando cada M do netlist
 		  			  vd[k][1]=Yn[i][nv+1];
-		  			  if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 0.5))
+		  			  if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 1e-3))
                 	{convergencia[4*k-3] = 1;}
-              else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<0.5))
+              else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<1e-3))
             		  {convergencia[4*k-3] = 1;}                	
               else {
                   (convergencia[4*k-3] = 0);
@@ -707,11 +723,11 @@ int main(void)
               }
 		  		}
 		  			
-		  		else if(j==1 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
+		  		else if(j==1 && tensaoMOS[k][j]==netlist[i].c ){
 		  			vg[k][1]=Yn[i][nv+1];
-		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 0.5))
+		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 1e-3))
             		{convergencia[4*k-2] = 1;}
-            else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<0.5))
+            else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<1e-3))
             		{convergencia[4*k-2] = 1;}                	
             else {
                (convergencia[4*k-2] = 0);
@@ -719,28 +735,30 @@ int main(void)
             }
 		  		}
 		  			
-				else if(j==2 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
+				else if(j==2 && tensaoMOS[k][j]==netlist[i].b){
 		  			vs[k][1]=Yn[i][nv+1];
-		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 0.5))
+		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 1e-3))
                 				{convergencia[4*k-1] = 1;}
-                			else if ((vs[k][1] <= 1) && (fabs(vs[k][1]-vs[k][0])<0.5 ))
+                			else if ((vs[k][1] <= 1) && (fabs(vs[k][1]-vs[k][0])<1e-3 ))
                     				{convergencia[4*k-1] = 1;}                	
                     			else 
                         			{(convergencia[4*k-1] = 0);
                           			vs[k][0] = vs[k][1];}
 		  		}
-				else if(j==3 && tensaoMOS[k][j]==i && netlist[i].nome[0]=='M'){
+				else if(j==3 && tensaoMOS[k][j]==netlist[i].c){
 		  			vb[k][1]=Yn[i][nv+1];
-		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 0.5))
+		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 1e-3))
                 				{convergencia[4*k] = 1;}
-                			else if ((vb[k][1] <= 1) && (fabs(vb[k][1]-vb[k][0])<0.5 ))
-                    				{convergencia[4*k] = 1;}                	
+                			else if ((vb[k][1] <= 1) && (fabs(vb[k][1]-vb[k][0])<1e-3 ))
+                    				{convergencia[4*k] = 1;}     	
                     			else 
                         			{(convergencia[4*k] = 0);
                           			vb[k][0] = vb[k][1];}
 		  		}
 				
 			}
+
+			}	
 			
 		}
 	  			  	
@@ -750,15 +768,15 @@ int main(void)
 			if (convergencia[i] == 1) {i++;}
 			else {i = -1;}
 		}
-
+		//printf("FIM %d, contador %d",fim, contador);
 		if (i == 4*nao_linear){fim = 1;}
 
-		if (contador ==1000){fim = 1;}
+		if (contador==510){fim =1;}
 		
 	}
-	printf("%d iteracoes foram realizadas.\n",contador);
+	printf("\n%d iteracoes foram realizadas.\n",contador);
 	contador=0;
-	printf("\n%d\n",nao_linear);
+	printf("\n%d Elementos nao lineares\n",nao_linear);
 	for(j = 1; j <= 4*nao_linear; j++){
 		if (convergencia[j] == 0){contador++;}
 	}
