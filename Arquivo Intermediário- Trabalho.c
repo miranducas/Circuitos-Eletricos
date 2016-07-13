@@ -39,7 +39,7 @@ O amplificador operacional ideal tem a saida suspensa
 Os nos podem ser nomes
 */
 
-
+//Trabalho de Circuitos Elétricos 2 - 
 #define versao "1.0j - 26/11/2015"
 #include <stdio.h>
 #include <conio.h>
@@ -407,11 +407,16 @@ int main(void)
     	
     	ne++;
     	//fonte de corrente I0
-    	strcpy(netlist[ne].nome,"MIds");
+     	strcpy(netlist[ne].nome,"MIds");
     	netlist[ne].a=numero(na);
     	netlist[ne].b=numero(nc);
-    	netlist[ne].valor= verMOSCond()-netlist[ne-2].valor*(vg[nao_linear][0]-vs[nao_linear][0])-netlist[ne-1].valor*(vb[nao_linear][0]-vs[nao_linear][0])-netlist[ne-3].valor*(vd[nao_linear][0]-vs[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
     	
+		if(mos[ne].tipo[0]=='N' || (mos[ne].tipo[0]=='P' && mos[ne].invertido==1 )){
+		netlist[ne].valor= verMOSCond()-netlist[ne-2].valor*(vg[nao_linear][0]-vs[nao_linear][0])-netlist[ne-1].valor*(vb[nao_linear][0]-vs[nao_linear][0])-netlist[ne-3].valor*(vd[nao_linear][0]-vs[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
+    	}
+    	else if(mos[ne].tipo[0]=='P'|| (mos[ne].tipo[0]=='N' && mos[ne].invertido==1)) {
+		netlist[ne].valor= verMOSCond()-netlist[ne-2].valor*(vs[nao_linear][0]-vg[nao_linear][0])-netlist[ne-1].valor*(vs[nao_linear][0]-vb[nao_linear][0])-netlist[ne-3].valor*(vs[nao_linear][0]-vd[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
+    	}	
     	ne++;
     	//capacitancia CGD
     	strcpy(netlist[ne].nome,"MCgd");
@@ -481,7 +486,7 @@ int main(void)
   printf("Netlist interno final:\n");
   for (i=1; i<=ne; i++) {
     tipo=netlist[i].nome[0];
-    if (tipo=='R' || tipo=='L' || tipo=='C' || tipo=='I' || tipo=='V') {
+    if (tipo=='R' || tipo=='L' || tipo=='C') {
       printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
     }
     else if (tipo=='I' || tipo=='V'){
@@ -641,7 +646,7 @@ int main(void)
 				else if(strcmp(netlist[i].nome,"MIds")==0){
 					Yn[netlist[i].a][nv+1]-=g;
 		      		Yn[netlist[i].b][nv+1]+=g;
-				}
+		      		}
 				else if(strcmp(netlist[i].nome,"MGm")==0){
 					Yn[netlist[i].a][netlist[i].c]+=g;
 		      		Yn[netlist[i].b][netlist[i].d]+=g;
@@ -649,18 +654,32 @@ int main(void)
 		      		Yn[netlist[i].b][netlist[i].c]-=g;
 				}
 				else if(strcmp(netlist[i].nome,"MGmb")==0){
-					nao_linear++;
 					Yn[netlist[i].a][netlist[i].c]+=g;
 		      		Yn[netlist[i].b][netlist[i].d]+=g;
 		      		Yn[netlist[i].a][netlist[i].d]-=g;
 		      		Yn[netlist[i].b][netlist[i].c]-=g;
 				}
-				else if(netlist[i].nome[1]=='C'){//não esquecer de manter os mesmos valores prs capacitores!!!
-					g=1/g;
+				else if(strcmp(netlist[i].nome,"MCgd")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
+					g=1e-9;
 					Yn[netlist[i].a][netlist[i].a]+=g;
 				    Yn[netlist[i].b][netlist[i].b]+=g;
 				    Yn[netlist[i].a][netlist[i].b]-=g;
 				    Yn[netlist[i].b][netlist[i].a]-=g;
+				}
+				else if(strcmp(netlist[i].nome,"MCgs")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
+					g=1e-9;
+					Yn[netlist[i].a][netlist[i].a]+=g;
+				    Yn[netlist[i].b][netlist[i].b]+=g;
+				    Yn[netlist[i].a][netlist[i].b]-=g;
+				    Yn[netlist[i].b][netlist[i].a]-=g;
+				}
+				else if(strcmp(netlist[i].nome,"MCgb")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
+					g=1e-9;
+					Yn[netlist[i].a][netlist[i].a]+=g;
+				    Yn[netlist[i].b][netlist[i].b]+=g;
+				    Yn[netlist[i].a][netlist[i].b]-=g;
+				    Yn[netlist[i].b][netlist[i].a]-=g;
+				    nao_linear++;
 				}
 				nao_linear--;
 			}
@@ -695,13 +714,7 @@ int main(void)
 	  getch();
 	#endif*/
 	
-	
-	
-	
-				//FIZ MUITAS MODIFICAÇOES A PARTIR DAQUI, EXPLICAR PARA O GRUPO!!
-	
-	
-	  for(k=1;k<=nao_linear;k++) {//inverti o for de k com o for de i, na minha cabeça faz mais sentido
+		  for(k=1;k<=nao_linear;k++) {//inverti o for de k com o for de i, na minha cabeça faz mais sentido
 	  	
 	  		
 	  	/*se nv estiver associada a alguma das 4 tensóes de cada um dos MOSFETS*/
@@ -713,9 +726,9 @@ int main(void)
 	
 		  		if(j==0 && tensaoMOS[k][j]== netlist[i].a ){//incrementar o i, pq ele está rodando cada M do netlist
 		  			  vd[k][1]=Yn[i][nv+1];
-		  			  if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 1e-3))
+		  			  if (((vd[k][1]) > 1) && (fabs((vd[k][1]-vd[k][0])/vd[k][1]) < 1e-12))
                 	{convergencia[4*k-3] = 1;}
-              else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<1e-3))
+              else if ((vd[k][1] <= 1) && (fabs(vd[k][1]-vd[k][0])<1e-12))
             		  {convergencia[4*k-3] = 1;}                	
               else {
                   (convergencia[4*k-3] = 0);
@@ -725,9 +738,9 @@ int main(void)
 		  			
 		  		else if(j==1 && tensaoMOS[k][j]==netlist[i].c ){
 		  			vg[k][1]=Yn[i][nv+1];
-		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 1e-3))
+		  			if (((vg[k][1]) > 1) && (fabs((vg[k][1]-vg[k][0])/vg[k][1]) < 1e-12))
             		{convergencia[4*k-2] = 1;}
-            else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<1e-3))
+            else if ((vg[k][1] <= 1) && (fabs(vg[k][1]-vg[k][0])<1e-12))
             		{convergencia[4*k-2] = 1;}                	
             else {
                (convergencia[4*k-2] = 0);
@@ -737,9 +750,9 @@ int main(void)
 		  			
 				else if(j==2 && tensaoMOS[k][j]==netlist[i].b){
 		  			vs[k][1]=Yn[i][nv+1];
-		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 1e-3))
+		  			if (((vs[k][1]) > 1) && (fabs((vs[k][1]-vs[k][0])/vs[k][1]) < 1e-12))
                 				{convergencia[4*k-1] = 1;}
-                			else if ((vs[k][1] <= 1) && (fabs(vs[k][1]-vs[k][0])<1e-3 ))
+                			else if ((vs[k][1] <= 1) && (fabs(vs[k][1]-vs[k][0])<1e-12))
                     				{convergencia[4*k-1] = 1;}                	
                     			else 
                         			{(convergencia[4*k-1] = 0);
@@ -747,9 +760,9 @@ int main(void)
 		  		}
 				else if(j==3 && tensaoMOS[k][j]==netlist[i].c){
 		  			vb[k][1]=Yn[i][nv+1];
-		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 1e-3))
+		  			if (((vb[k][1]) > 1) && (fabs((vb[k][1]-vb[k][0])/vb[k][1]) < 1e-12))
                 				{convergencia[4*k] = 1;}
-                			else if ((vb[k][1] <= 1) && (fabs(vb[k][1]-vb[k][0])<1e-3 ))
+                			else if ((vb[k][1] <= 1) && (fabs(vb[k][1]-vb[k][0])<1e-12))
                     				{convergencia[4*k] = 1;}     	
                     			else 
                         			{(convergencia[4*k] = 0);
