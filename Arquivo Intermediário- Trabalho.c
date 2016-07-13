@@ -760,6 +760,9 @@ int main(void)
 	for(j = 1; j <= 4*nao_linear; j++){
 		if (convergencia[j] == 0){contador++;}
 	}
+	for(j=1;j<=4*nao_linear;j++){
+		printf("\n Convergencia %d %d",j,convergencia[j]);
+	}
 	if(contador!=0)
 		printf("%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador);
 	else
