@@ -595,7 +595,7 @@ int main(void)
 		    }
 			else if (tipo=='M') {
 				contadorMos++;
-    				if(contadorMos % 7 == 0)
+    				if(contadorMos % 7 == 1)
     					{nao_linear++;}
 				
 				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
