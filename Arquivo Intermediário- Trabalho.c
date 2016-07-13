@@ -615,7 +615,7 @@ int main(void)
 					  		     else {vs[nao_linear][0] = vs[nao_linear][1];}
 					  	  }
 					
-              	else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
+              					    else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
 							       if (convergencia[4*nao_linear] == 0 && contador % 251 != 0){vb[nao_linear][0] = rand()%21 - 10;}
 							       else {vb[nao_linear][0] = vb[nao_linear][1];}
 						    }
