@@ -87,7 +87,7 @@ int
   inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: vínculo entre nó e tensão (não confundir com valor de tensão!)*/
   ne_extra,nao_linear;
   
-short contador =1, fim = 0;
+short contador =1, fim = 0, contadorMos = 0;
 int   convergencia[MAX_ELEM];
 
 char
@@ -594,6 +594,9 @@ int main(void)
 		      Yn[netlist[i].x][netlist[i].d]-=1;
 		    }
 			else if (tipo=='M') {
+				contadorMos++;
+    				if(contadorMos % 7 == 0)
+    					{nao_linear++;}
 				
 				if(contador>1){/*entra aqui apenas a partir da segunda iteração do Newton-Raphson*/
 					for(j=0;j<=3;j++){
