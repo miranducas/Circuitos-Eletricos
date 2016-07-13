@@ -627,8 +627,7 @@ int main(void)
 				g=netlist[i].valor;  
 					
 				if(strcmp(netlist[i].nome,"MRGds")==0){
-					nao_linear++;
-					Yn[netlist[i].a][netlist[i].a]+=g;
+				Yn[netlist[i].a][netlist[i].a]+=g;
 			    	Yn[netlist[i].b][netlist[i].b]+=g;
 			        Yn[netlist[i].a][netlist[i].b]-=g;
 			        Yn[netlist[i].b][netlist[i].a]-=g;	
