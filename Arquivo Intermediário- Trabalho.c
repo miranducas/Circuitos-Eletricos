@@ -53,7 +53,7 @@ Os nos podem ser nomes
 #define MAX_NOME 11
 #define MAX_ELEM 500
 #define MAX_NOS 50
-#define TOLG 1e-9
+#define TOLG 1e-20
 #define PI 3.14159265358979
 #define DEBUG
 
@@ -120,6 +120,9 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 			
 			if(mos[ne].tipo[0]=='P'){
 				mos[ne].invertido=1;
+				aux=vd[nao_linear][0];
+				vd[nao_linear][0]=vs[nao_linear][0];
+				vd[nao_linear][0]=aux;	
 			}
 			
 			if((vg[nao_linear][0]-vs[nao_linear][0])<vt[nao_linear][0]) //corte
@@ -163,6 +166,9 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 			
 			if(mos[ne].tipo[0]=='N'){
 				mos[ne].invertido=1;
+				aux=vd[nao_linear][0];
+				vd[nao_linear][0]=vs[nao_linear][0];
+				vd[nao_linear][0]=aux;	
 			}
 			
 			if((vg[nao_linear][0]-vs[nao_linear][0])>vt[nao_linear][0]) //corte
@@ -178,8 +184,8 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 				else if(strcmp(netlist[ne].nome,"MGmb")==0)//se for Gmb
 					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vd[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi+vb[nao_linear][0]-vs[nao_linear][0])));			 
 			
-				else if(strcmp(netlist[ne].nome,"MIds")==0)
-					return -((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0]))*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0])));
+		else if(strcmp(netlist[ne].nome,"MIds")==0)
+					return -((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vd[nao_linear][0]-vs[nao_linear][0])-(vd[nao_linear][0]-vs[nao_linear][0])*(vd[nao_linear][0]-vs[nao_linear][0]))*(1+mos[ne].lambda*(vd[nao_linear][0]-vs[nao_linear][0])));
 			}
 			
 			else if((vd[nao_linear][0]-vs[nao_linear][0])<=(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//saturação				
@@ -193,7 +199,7 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
 					return ((((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]))))*mos[ne].gama)/(sqrt(mos[ne].phi-vs[nao_linear][0]+vb[nao_linear][0])));
 			    
 			    else if(strcmp(netlist[ne].nome,"MIds")==0)
-					return  -(mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(1+mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0]));
+					return  -(mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(1+mos[ne].lambda*(vd[nao_linear][0]-vs[nao_linear][0]));
 			}
 		}
 		
@@ -422,9 +428,9 @@ int main(void)
 		if(mos[ne].tipo[0]=='N' || (mos[ne].tipo[0]=='P' && mos[ne].invertido==1 )){
 		netlist[ne].valor= verMOSCond()-netlist[ne-2].valor*(vg[nao_linear][0]-vs[nao_linear][0])-netlist[ne-1].valor*(vb[nao_linear][0]-vs[nao_linear][0])-netlist[ne-3].valor*(vd[nao_linear][0]-vs[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
     	}
-    	else if(mos[ne].tipo[0]=='P'|| (mos[ne].tipo[0]=='N' && mos[ne].invertido==1)) {
-		netlist[ne].valor= verMOSCond()-netlist[ne-2].valor*(vs[nao_linear][0]-vg[nao_linear][0])-netlist[ne-1].valor*(vs[nao_linear][0]-vb[nao_linear][0])-netlist[ne-3].valor*(vs[nao_linear][0]-vd[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
-    	}	
+    	//else if(mos[ne].tipo[0]=='P'|| (mos[ne].tipo[0]=='N' && mos[ne].invertido==1)) {
+	//	netlist[ne].valor= verMOSCond()-netlist[ne-2].valor*(vs[nao_linear][0]-vg[nao_linear][0])-netlist[ne-1].valor*(vs[nao_linear][0]-vb[nao_linear][0])-netlist[ne-3].valor*(vs[nao_linear][0]-vd[nao_linear][0]); //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
+    	//}	
     	ne++;
     	//capacitancia CGD
     	strcpy(netlist[ne].nome,"MCgd");
@@ -491,50 +497,7 @@ int main(void)
   for (i=0; i<=nv; i++)
     printf("%d -> %s\n",i,lista[i]);
   getch();
-  printf("Netlist interno final:\n");
-  for (i=1; i<=ne; i++) {
-    tipo=netlist[i].nome[0];
-    if (tipo=='R'|| tipo=='C') {
-      printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
-    }
-    else if (tipo=='I' || tipo=='V'){
-    	printf("%s %d %d %g %g %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].modulo,netlist[i].fase,netlist[i].valor);
-	}
-    else if (tipo=='G' || tipo=='E' || tipo=='F' || tipo=='H') {
-      printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
-    }
-    else if (tipo=='O') {
-      printf("%s %d %d %d %d\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d);
-    }
-    else if (tipo=='K') {
-      printf("%s %s %s %g\n",netlist[i].nome,acop_K[i].lA,acop_K[i].lB,netlist[i].valor);
-	}
-	
-	else if (tipo=='M') {
-		if(strcmp(netlist[i].nome,"MRGds")==0){
-			printf("%s %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
-		}
-		else if(strcmp(netlist[i].nome,"MIds")==0){
-			printf("%s %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
-		}
-		else if(strcmp(netlist[i].nome,"MGm")==0){
-			printf("%s %d %d %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
-		}
-		else if(strcmp(netlist[i].nome,"MGmb")==0){
-			printf("%s %d %d %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
-		}
-		else if(netlist[i].nome[1]=='C'){
-			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
-		}
-	}
-	
-    if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L')
-      printf("Corrente jx: %d\n",netlist[i].x);
-    else if (tipo=='H')
-      printf("Correntes jx e jy: %d, %d\n",netlist[i].x,netlist[i].y);
-  }
-  getch();
-  /* Monta o sistema nodal modificado */
+   /* Monta o sistema nodal modificado */
   if(nao_linear>0) {
   	printf("O circuito e não linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos nao lineares (que se decompoe em %d elementos linearizados)., com ne=%d\n",nn,nv,ne-8*nao_linear,nao_linear,nao_linear*7,ne);
   }
@@ -810,6 +773,49 @@ int main(void)
 		if (contador==51000){fim =1;}
 		
 	}
+	printf("Netlist interno final:\n");
+  for (i=1; i<=ne; i++) {
+    tipo=netlist[i].nome[0];
+    if (tipo=='R'|| tipo=='C') {
+      printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+    }
+    else if (tipo=='I' || tipo=='V'){
+    	printf("%s %d %d %g %g %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].modulo,netlist[i].fase,netlist[i].valor);
+	}
+    else if (tipo=='G' || tipo=='E' || tipo=='F' || tipo=='H') {
+      printf("%s %d %d %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
+    }
+    else if (tipo=='O') {
+      printf("%s %d %d %d %d\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d);
+    }
+    else if (tipo=='K') {
+      printf("%s %s %s %g\n",netlist[i].nome,acop_K[i].lA,acop_K[i].lB,netlist[i].valor);
+	}
+	
+	else if (tipo=='M') {
+		if(strcmp(netlist[i].nome,"MRGds")==0){
+			printf("%s %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		}
+		else if(strcmp(netlist[i].nome,"MIds")==0){
+			printf("%s %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		}
+		else if(strcmp(netlist[i].nome,"MGm")==0){
+			printf("%s %d %d %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
+		}
+		else if(strcmp(netlist[i].nome,"MGmb")==0){
+			printf("%s %d %d %d %d %lg\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].c,netlist[i].d,netlist[i].valor);
+		}
+		else if(netlist[i].nome[1]=='C'){
+			printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
+		}
+	}
+	
+    if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L')
+      printf("Corrente jx: %d\n",netlist[i].x);
+    else if (tipo=='H')
+      printf("Correntes jx e jy: %d, %d\n",netlist[i].x,netlist[i].y);
+  }
+ 	getch();
 	printf("\n%d iteracoes foram realizadas.\n",contador);
 	contador=0;
 	printf("\n%d Elementos nao lineares\n",nao_linear);
