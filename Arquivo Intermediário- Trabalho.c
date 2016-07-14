@@ -47,12 +47,14 @@ Os nos podem ser nomes
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
+#include <complex.h>
 #include <time.h>
 #define MAX_LINHA 80
 #define MAX_NOME 11
 #define MAX_ELEM 500
 #define MAX_NOS 50
 #define TOLG 1e-9
+#define PI 3.14159265358979
 #define DEBUG
 
 typedef struct elemento { /* Elemento do netlist */
@@ -105,7 +107,11 @@ double
   g,
   vd[MAX_ELEM][2],vs[MAX_ELEM][2],vg[MAX_ELEM][2],vb[MAX_ELEM][2],vt[MAX_ELEM][2],//tensões auxiliares do transistor MOS
   Yn[MAX_NOS+1][MAX_NOS+2];//matriz nodal
-
+  
+ double complex
+	amplitude,
+	frequencia,
+	fase;
 
 double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
 	if(vd[nao_linear][0]>vs[nao_linear][0]){
@@ -314,7 +320,7 @@ int main(void)
 	  }
 	  else if (tipo=='C') {     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
 		  inc_C++;
-        	cap_C[inc_C] = netlist[ne].valor;
+          cap_C[inc_C] = netlist[ne].valor;
 		  netlist[ne].valor = 1e9;
 		  printf("%s %s %s %g\n",netlist[ne].nome,na,nb,cap_C[inc_C]);
 	  }
@@ -822,6 +828,151 @@ int main(void)
 	for (i=1; i<=nv; i++) {
 		if (i==nn+1) strcpy(txt,"Corrente");
 		printf("%s %s: %g\n",txt,lista[i],Yn[i][nv+1]);
+	}
+	
+	
+	printf("\nAnalise de Resposta em frequência:\n");
+	
+	inc_L=0; inc_C=0;
+	
+	
+	for (i=0; i<=nv; i++) {
+    	for (j=0; j<=nv+1; j++)
+      	Yn[i][j]=0;
+  	}
+	
+	for (i=1; i<=ne; i++) {
+		    tipo=netlist[i].nome[0];
+		    if (tipo=='R') {
+		      					
+		      g=1/netlist[i].valor;
+		      Yn[netlist[i].a][netlist[i].a]+=g;
+		      Yn[netlist[i].b][netlist[i].b]+=g;
+		      Yn[netlist[i].a][netlist[i].b]-=g;
+		      Yn[netlist[i].b][netlist[i].a]-=g;
+		    }
+		    else if (tipo=='C' ) {//estampa do capacitor (resp em freq)
+		      inc_C++;			
+		      g=2*PI*frequencia*cap_C[inc_C]*I;
+		      Yn[netlist[i].a][netlist[i].a]+=g;
+		      Yn[netlist[i].b][netlist[i].b]+=g;
+		      Yn[netlist[i].a][netlist[i].b]-=g;
+		      Yn[netlist[i].b][netlist[i].a]-=g;
+		    }
+		    else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
+		      inc_L++;			
+		      g=2*PI*frequencia*ind_L[inc_L]*I;
+		      Yn[netlist[i].a][netlist[i].x]+=1;
+		      Yn[netlist[i].b][netlist[i].x]-=1;
+		      Yn[netlist[i].x][netlist[i].a]-=1;
+		      Yn[netlist[i].x][netlist[i].b]+=1;
+		      Yn[netlist[i].x][netlist[i].x]+=g;
+			}
+		    else if (tipo=='G') {
+		      g=netlist[i].valor;
+		      Yn[netlist[i].a][netlist[i].c]+=g;
+		      Yn[netlist[i].b][netlist[i].d]+=g;
+		      Yn[netlist[i].a][netlist[i].d]-=g;
+		      Yn[netlist[i].b][netlist[i].c]-=g;
+		      
+		    }
+		    else if (tipo=='I') {
+				Yn[netlist[i].a][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sen(netlist[ne].fase));
+				Yn[netlist[i].b][nv+1]= netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sen(netlist[ne].fase);
+		    }
+		    else if (tipo=='V') {
+				  Yn[netlist[i].a][netlist[i].x]+=1;
+			      Yn[netlist[i].b][netlist[i].x]-=1;
+			      Yn[netlist[i].x][netlist[i].a]-=1;
+			      Yn[netlist[i].x][netlist[i].b]+=1;
+			      Yn[netlist[i].x][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sen(netlist[ne].fase));	
+		    }
+		    else if (tipo=='E') {
+		      g=netlist[i].valor;
+		      Yn[netlist[i].a][netlist[i].x]+=1;
+		      Yn[netlist[i].b][netlist[i].x]-=1;
+		      Yn[netlist[i].x][netlist[i].a]-=1;
+		      Yn[netlist[i].x][netlist[i].b]+=1;
+		      Yn[netlist[i].x][netlist[i].c]+=g;
+		      Yn[netlist[i].x][netlist[i].d]-=g;
+		    }
+		    else if (tipo=='F') {
+		      g=netlist[i].valor;
+		      Yn[netlist[i].a][netlist[i].x]+=g;
+		      Yn[netlist[i].b][netlist[i].x]-=g;
+		      Yn[netlist[i].c][netlist[i].x]+=1;
+		      Yn[netlist[i].d][netlist[i].x]-=1;
+		      Yn[netlist[i].x][netlist[i].c]-=1;
+		      Yn[netlist[i].x][netlist[i].d]+=1;
+		    }
+		    else if (tipo=='H') {
+		      g=netlist[i].valor;
+		      Yn[netlist[i].a][netlist[i].y]+=1;
+		      Yn[netlist[i].b][netlist[i].y]-=1;
+		      Yn[netlist[i].c][netlist[i].x]+=1;
+		      Yn[netlist[i].d][netlist[i].x]-=1;
+		      Yn[netlist[i].y][netlist[i].a]-=1;
+		      Yn[netlist[i].y][netlist[i].b]+=1;
+		      Yn[netlist[i].x][netlist[i].c]-=1;
+		      Yn[netlist[i].x][netlist[i].d]+=1;
+		      Yn[netlist[i].y][netlist[i].x]+=g;
+		    }
+		    else if (tipo=='O') {
+		      Yn[netlist[i].a][netlist[i].x]+=1;
+		      Yn[netlist[i].b][netlist[i].x]-=1;
+		      Yn[netlist[i].x][netlist[i].c]+=1;
+		      Yn[netlist[i].x][netlist[i].d]-=1;
+		    }
+			else if (tipo=='M') 	
+				g=netlist[i].valor;  
+					
+				if(strcmp(netlist[i].nome,"MRGds")==0){
+				Yn[netlist[i].a][netlist[i].a]+=g;
+			    	Yn[netlist[i].b][netlist[i].b]+=g;
+			        Yn[netlist[i].a][netlist[i].b]-=g;
+			        Yn[netlist[i].b][netlist[i].a]-=g;	
+				}
+				else if(strcmp(netlist[i].nome,"MIds")==0){
+					Yn[netlist[i].a][nv+1]-=0;
+		      		Yn[netlist[i].b][nv+1]+=0;
+		      		}
+				else if(strcmp(netlist[i].nome,"MGm")==0){
+					Yn[netlist[i].a][netlist[i].c]+=g;
+		      		Yn[netlist[i].b][netlist[i].d]+=g;
+		      		Yn[netlist[i].a][netlist[i].d]-=g;
+		      		Yn[netlist[i].b][netlist[i].c]-=g;
+				}
+				else if(strcmp(netlist[i].nome,"MGmb")==0){
+					
+					Yn[netlist[i].a][netlist[i].c]+=g;
+		      		Yn[netlist[i].b][netlist[i].d]+=g;
+		      		Yn[netlist[i].a][netlist[i].d]-=g;
+		      		Yn[netlist[i].b][netlist[i].c]-=g;
+				}
+				else if(strcmp(netlist[i].nome,"MCgd")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
+					g=1e-9;
+					Yn[netlist[i].a][netlist[i].a]+=g;
+				    Yn[netlist[i].b][netlist[i].b]+=g;
+				    Yn[netlist[i].a][netlist[i].b]-=g;
+				    Yn[netlist[i].b][netlist[i].a]-=g;
+				}
+				else if(strcmp(netlist[i].nome,"MCgs")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
+					g=1e-9;
+					Yn[netlist[i].a][netlist[i].a]+=g;
+				    Yn[netlist[i].b][netlist[i].b]+=g;
+				    Yn[netlist[i].a][netlist[i].b]-=g;
+				    Yn[netlist[i].b][netlist[i].a]-=g;
+				}
+				else if(strcmp(netlist[i].nome,"MCgb")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
+					g=1e-9;
+					Yn[netlist[i].a][netlist[i].a]+=g;
+				    Yn[netlist[i].b][netlist[i].b]+=g;
+				    Yn[netlist[i].a][netlist[i].b]-=g;
+				    Yn[netlist[i].b][netlist[i].a]-=g;
+				    nao_linear++;
+				}
+			}
+	
 	}
 	getch();
 	return 0;
