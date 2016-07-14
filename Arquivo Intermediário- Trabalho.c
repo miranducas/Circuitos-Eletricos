@@ -883,15 +883,15 @@ int main(void)
 		      
 		    }
 		    else if (tipo=='I') {
-				Yn[netlist[i].a][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sen(netlist[ne].fase));
-				Yn[netlist[i].b][nv+1]= netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sen(netlist[ne].fase);
+				Yn[netlist[i].a][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase));
+				Yn[netlist[i].b][nv+1]= netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase);
 		    }
 		    else if (tipo=='V') {
 				  Yn[netlist[i].a][netlist[i].x]+=1;
 			      Yn[netlist[i].b][netlist[i].x]-=1;
 			      Yn[netlist[i].x][netlist[i].a]-=1;
 			      Yn[netlist[i].x][netlist[i].b]+=1;
-			      Yn[netlist[i].x][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sen(netlist[ne].fase));	
+			      Yn[netlist[i].x][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase));	
 		    }
 		    else if (tipo=='E') {
 		      g=netlist[i].valor;
@@ -929,7 +929,8 @@ int main(void)
 		      Yn[netlist[i].x][netlist[i].c]+=1;
 		      Yn[netlist[i].x][netlist[i].d]-=1;
 		    }
-			else if (tipo=='M') 	
+			else if (tipo=='M') {
+			
 				g=netlist[i].valor;  
 					
 				if(strcmp(netlist[i].nome,"MRGds")==0){
@@ -981,6 +982,6 @@ int main(void)
 	
 	}
 	getch();
+	
 	return 0;
-
 }
