@@ -318,8 +318,9 @@ int main(void)
 		  netlist[ne].valor = 1e9;
 		  printf("%s %s %s %g\n",netlist[ne].nome,na,nb,cap_C[inc_C]);
 	  }
-	  else 
-	  	printf("%s %s %s %g\n",netlist[ne].nome,na,nb,netlist[ne].valor);	   
+	  else{ 
+	  	printf("%s %s %s %g\n",netlist[ne].nome,na,nb,netlist[ne].valor);
+		}
       netlist[ne].a=numero(na);
       netlist[ne].b=numero(nb);
 	}
@@ -456,7 +457,7 @@ int main(void)
   nn=nv;
   for (i=1; i<=ne; i++) {
     tipo=netlist[i].nome[0];
-    if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O') {
+    if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L') {
       nv++;
       if (nv>MAX_NOS) {
         printf("As correntes extra excederam o numero de variaveis permitido (%d)\n",MAX_NOS);
@@ -487,7 +488,7 @@ int main(void)
   printf("Netlist interno final:\n");
   for (i=1; i<=ne; i++) {
     tipo=netlist[i].nome[0];
-    if (tipo=='R' || tipo=='L' || tipo=='C') {
+    if (tipo=='R'|| tipo=='C') {
       printf("%s %d %d %g\n",netlist[i].nome,netlist[i].a,netlist[i].b,netlist[i].valor);
     }
     else if (tipo=='I' || tipo=='V'){
@@ -521,7 +522,7 @@ int main(void)
 		}
 	}
 	
-    if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O')
+    if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L')
       printf("Corrente jx: %d\n",netlist[i].x);
     else if (tipo=='H')
       printf("Correntes jx e jy: %d, %d\n",netlist[i].x,netlist[i].y);
@@ -545,19 +546,28 @@ int main(void)
       nao_linear=0;
 	  for (i=1; i<=ne; i++) {
 		    tipo=netlist[i].nome[0];
-		    if (tipo=='R' || tipo=='L' || tipo=='C' ) {
+		    if (tipo=='R' || tipo=='C' ) {
 		      g=1/netlist[i].valor;
 		      Yn[netlist[i].a][netlist[i].a]+=g;
 		      Yn[netlist[i].b][netlist[i].b]+=g;
 		      Yn[netlist[i].a][netlist[i].b]-=g;
 		      Yn[netlist[i].b][netlist[i].a]-=g;
 		    }
+		    else if (tipo=='L'){//estampa do indutor controlado a corrente (P.O.)
+		      g=netlist[i].valor;
+		      Yn[netlist[i].a][netlist[i].x]+=1;
+		      Yn[netlist[i].b][netlist[i].x]-=1;
+		      Yn[netlist[i].x][netlist[i].a]-=1;
+		      Yn[netlist[i].x][netlist[i].b]+=1;
+		      Yn[netlist[i].x][netlist[i].x]+=g;
+			}
 		    else if (tipo=='G') {
 		      g=netlist[i].valor;
 		      Yn[netlist[i].a][netlist[i].c]+=g;
 		      Yn[netlist[i].b][netlist[i].d]+=g;
 		      Yn[netlist[i].a][netlist[i].d]-=g;
 		      Yn[netlist[i].b][netlist[i].c]-=g;
+		      
 		    }
 		    else if (tipo=='I') {
 		      g=netlist[i].valor;
@@ -806,7 +816,7 @@ int main(void)
 	if(contador!=0)
 		printf("\n%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador);
 	else
-		printf("Solucao do Ponto de Operacao:\n");/*escrever num arquivo o resultado do ponto de operação*/
+		printf("Solucao do Ponto de Operacao:\n");
 	
 	strcpy(txt,"Tensao");
 	for (i=1; i<=nv; i++) {
