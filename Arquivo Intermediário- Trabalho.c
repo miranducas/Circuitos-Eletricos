@@ -114,8 +114,10 @@ double
   fase;
 
 double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
-  if(vd[nao_linear][0]>vs[nao_linear][0]){
-    
+   if(vd[nao_linear][0]>=vs[nao_linear][0]){
+  	if(vd[nao_linear][0]=vs[nao_linear][0]){
+  		vd[nao_linear][0]+=1e-3;
+	  }
     if(mos[ne].tipo[0]=='N' || mos[ne].tipo[0]=='P'){
       
       if(mos[ne].tipo[0]=='P'){
@@ -394,9 +396,13 @@ int main(void)
       mos[ne+i].ld=mos[ne].ld;
     }
       
-    vd[nao_linear][0]=0.1; vg[nao_linear][0]=0.1; vs[nao_linear][0]=0.1; vb[nao_linear][0]=0.11; //vb[nao_linear][0]=mos[ne].phi/2+vs[nao_linear][0]; //valores iniciais aleatórios entre 0 e 10 para as tensões
-    vt[nao_linear][0]=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[ne].phi));//tensão de limiar "threshold"
-    ne++;
+      vd[nao_linear][0]=rand()%10; vd[nao_linear][0]=vd[nao_linear][0]/10;
+	    vg[nao_linear][0]=rand()%10; vg[nao_linear][0]=vg[nao_linear][0]/10;
+      vs[nao_linear][0]=rand()%10; vs[nao_linear][0]=vs[nao_linear][0]/10; 
+	    //vb[nao_linear][0]=rand()%10; vb[nao_linear][0]=vb[nao_linear][0]/10; 
+	    vb[nao_linear][0]=mos[ne].phi/2+vs[nao_linear][0]; //valores iniciais aleatórios entre 0 e 1 para as tensões
+      vt[nao_linear][0]=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[ne].phi));
+     ne++;
     //resistor RDS
       strcpy(netlist[ne].nome,"MRGds");
       netlist[ne].a=numero(na); tensaoMOS[nao_linear][0]=netlist[ne].a; // 0 -> vd associado ao numero do no pela 1 vez
@@ -593,22 +599,22 @@ int main(void)
         if(contador>1){//entra aqui apenas a partir da segunda iteração do Newton-Raphson
           for(j=0;j<=3;j++){
                 if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){                     
-                     if (convergencia[4*nao_linear-3] == 0 && contador % 5100 == 0){vd[nao_linear][0] = rand()%21 - 10;}
+                     if (convergencia[4*nao_linear-3] == 0 && contador % 1000 == 0){vd[nao_linear][0] = rand()%21 - 10;}
                      else {vd[nao_linear][0] = vd[nao_linear][1];}
                 } 
               
                 else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){            
-                     if (convergencia[4*nao_linear-2] == 0 && contador % 5100 == 0){vg[nao_linear][0] = rand()%21 - 10;}
+                     if (convergencia[4*nao_linear-2] == 0 && contador % 1000 == 0){vg[nao_linear][0] = rand()%21 - 10;}
                      else {vg[nao_linear][0] = vg[nao_linear][1];}  
                 }
               
                 else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){            
-                     if (convergencia[4*nao_linear-1] == 0 && contador % 5100 == 0){vs[nao_linear][0] = rand()%21 - 10;}
+                     if (convergencia[4*nao_linear-1] == 0 && contador % 1000 == 0){vs[nao_linear][0] = rand()%21 - 10;}
                      else {vs[nao_linear][0] = vs[nao_linear][1];}
                 }
           
                             else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
-                     if (convergencia[4*nao_linear] == 0 && contador % 5100 == 0){vb[nao_linear][0] = rand()%21 - 10;}
+                     if (convergencia[4*nao_linear] == 0 && contador % 1000 == 0){vb[nao_linear][0] = rand()%21 - 10;}
                      else {vb[nao_linear][0] = vb[nao_linear][1];}
                 }
           }
@@ -772,7 +778,7 @@ int main(void)
     //printf("FIM %d, contador %d",fim, contador);
     if (i == 4*nao_linear){fim = 1;}
 
-    if (contador==51000){fim =1;}
+    if (contador==10000){fim =1;}
     
   }
   printf("Netlist interno final:\n");
