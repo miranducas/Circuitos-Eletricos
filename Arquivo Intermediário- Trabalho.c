@@ -50,7 +50,7 @@ Os nos podem ser nomes
 #include <time.h>
 #define MAX_LINHA 80
 #define MAX_NOME 11
-#define MAX_ELEM 200
+#define MAX_ELEM 500
 #define MAX_NOS 50
 #define TOLG 1e-9
 #define DEBUG
@@ -325,6 +325,7 @@ int main(void)
 	}
 	else if (tipo=='I' || tipo=='V'){
 		sscanf(p,"%10s%10s%lg%lg%lg",na,nb,&netlist[ne].modulo,&netlist[ne].fase,&netlist[ne].valor);
+		printf("%s %s %s %g %g %g\n",netlist[ne].nome,na,nb,netlist[ne].modulo,netlist[ne].fase,netlist[ne].valor);
 		netlist[ne].a=numero(na);
 		netlist[ne].b=numero(nb);
 		}
@@ -378,7 +379,7 @@ int main(void)
 			mos[ne+i].ld=mos[ne].ld;
 		}
     	
-		vd[nao_linear][0]=0.1; vg[nao_linear][0]=0.1; vs[nao_linear][0]=0.1; vb[nao_linear][0]=mos[ne].phi/2+vs[nao_linear][0]; //valores iniciais aleatórios entre 0 e 10 para as tensões
+		vd[nao_linear][0]=0.1; vg[nao_linear][0]=0.1; vs[nao_linear][0]=0.1; vb[nao_linear][0]=0.11; //vb[nao_linear][0]=mos[ne].phi/2+vs[nao_linear][0]; //valores iniciais aleatórios entre 0 e 10 para as tensões
 		vt[nao_linear][0]=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[ne].phi));//tensão de limiar "threshold"
 		ne++;
 		//resistor RDS
@@ -611,26 +612,32 @@ int main(void)
 				if(contador>1){//entra aqui apenas a partir da segunda iteração do Newton-Raphson
 					for(j=0;j<=3;j++){
 						    if(j==0 && tensaoMOS[nao_linear][j]==netlist[i].a){						  				
-					  	       if (convergencia[4*nao_linear-3] == 0 && contador % 51 == 0){vd[nao_linear][0] = rand()%21 - 10;}
+					  	       if (convergencia[4*nao_linear-3] == 0 && contador % 5100 == 0){vd[nao_linear][0] = rand()%21 - 10;}
 					  		     else {vd[nao_linear][0] = vd[nao_linear][1];}
 					      } 
 					  	
 				        else if(j==1 && tensaoMOS[nao_linear][j]==netlist[i].c){						
-        	  		     if (convergencia[4*nao_linear-2] == 0 && contador % 51 == 0){vg[nao_linear][0] = rand()%21 - 10;}
+        	  		     if (convergencia[4*nao_linear-2] == 0 && contador % 5100 == 0){vg[nao_linear][0] = rand()%21 - 10;}
 				    		     else {vg[nao_linear][0] = vg[nao_linear][1];} 	
 				        }
 					  	
 						    else if(j==2 && tensaoMOS[nao_linear][j]==netlist[i].b){						
-					  		     if (convergencia[4*nao_linear-1] == 0 && contador % 51 == 0){vs[nao_linear][0] = rand()%21 - 10;}
+					  		     if (convergencia[4*nao_linear-1] == 0 && contador % 5100 == 0){vs[nao_linear][0] = rand()%21 - 10;}
 					  		     else {vs[nao_linear][0] = vs[nao_linear][1];}
 					  	  }
 					
               					    else if(j==3 && tensaoMOS[nao_linear][j]==netlist[i].c){
-							       if (convergencia[4*nao_linear] == 0 && contador % 51 == 0){vb[nao_linear][0] = rand()%21 - 10;}
+							       if (convergencia[4*nao_linear] == 0 && contador % 5100 == 0){vb[nao_linear][0] = rand()%21 - 10;}
 							       else {vb[nao_linear][0] = vb[nao_linear][1];}
 						    }
 				  }
-					vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
+				  
+				  	if (fabs(vb[nao_linear][0]-vs[nao_linear][0])>(mos[i].phi)/2){
+				  		vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt((mos[i].phi)/2)-sqrt(mos[i].phi));
+					  }
+				  	else {
+					  vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
+					  }
 			    	verMOSCond();
 			    	
 				}
@@ -784,7 +791,7 @@ int main(void)
 		//printf("FIM %d, contador %d",fim, contador);
 		if (i == 4*nao_linear){fim = 1;}
 
-		if (contador==510){fim =1;}
+		if (contador==51000){fim =1;}
 		
 	}
 	printf("\n%d iteracoes foram realizadas.\n",contador);
@@ -797,7 +804,7 @@ int main(void)
 		printf("\n Convergencia %d %d",j,convergencia[j]);
 	}
 	if(contador!=0)
-		printf("%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador);
+		printf("\n%d solucoes nao convergiram. Ultima solucao do sistema:\n",contador);
 	else
 		printf("Solucao do Ponto de Operacao:\n");/*escrever num arquivo o resultado do ponto de operação*/
 	
