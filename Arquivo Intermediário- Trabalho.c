@@ -104,7 +104,7 @@ char
 FILE *arquivo;
 
 double
-  g,
+  g,aux,
   vd[MAX_ELEM][2],vs[MAX_ELEM][2],vg[MAX_ELEM][2],vb[MAX_ELEM][2],vt[MAX_ELEM][2],//tensões auxiliares do transistor MOS
   Yn[MAX_NOS+1][MAX_NOS+2];//matriz nodal
   
