@@ -73,7 +73,8 @@ acoplamento acop_K[MAX_ELEM];
 
 typedef struct transitorMOS {
    char tipo[MAX_NOME];
-   double cp,lg,transK,vt0,lambda,gama,phi,ld;
+   double cp,lg,transK,vt0,lambda,gama,phi,ld,cox,
+   		  cgs,cgd,cbg;
    int invertido;
 } transistorMOS;
 
@@ -127,11 +128,21 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
         vs[nao_linear][0]=aux;  
       }
       
-      if((vg[nao_linear][0]-vs[nao_linear][0])<vt[nao_linear][0]) //corte
-        return 0;//em todos os 3 casos
+      if((vg[nao_linear][0]-vs[nao_linear][0])<vt[nao_linear][0]){ //corte
+        
+		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld;
+        mos[ne].cgd=mos[ne].cgs;
+        mos[ne].cbg=mos[ne].cox*mos[ne].cp*mos[ne].lg;
+		
+		return 0;
+	  }//em todos os 3 casos
         
       else if((vd[nao_linear][0]-vs[nao_linear][0])<=(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//triodo 
-      
+      	
+		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+(mos[ne].cox*mos[ne].cp*mos[ne].lg/2;
+        mos[ne].cgd=mos[ne].cgs;
+        mos[ne].cbg=0;
+      	
         if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])-2*(vd[nao_linear][0]-vs[nao_linear][0])+4*mos[ne].lambda*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vd[nao_linear][0]-vs[nao_linear][0])-3*mos[ne].lambda*(vd[nao_linear][0]-vs[nao_linear][0])*(vd[nao_linear][0]-vs[nao_linear][0])));
   
@@ -147,7 +158,12 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
       }
       
       else if((vd[nao_linear][0]-vs[nao_linear][0])>(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//saturação        
-        if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+        
+		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+2*(mos[ne].cox*mos[ne].cp*mos[ne].lg/3;
+        mos[ne].cgd=mos[ne].cox*mos[ne].cp*mos[ne].ld;
+        mos[ne].cbg=0;
+		
+		if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*mos[ne].lambda);
         
         else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
@@ -175,11 +191,22 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
         vs[nao_linear][0]=aux;  
       }
       
-      if((vg[nao_linear][0]-vs[nao_linear][0])>vt[nao_linear][0]) //corte
-        return 0;//em todos os 3 casos
+      if((vg[nao_linear][0]-vs[nao_linear][0])>vt[nao_linear][0]){ //corte
+        
+		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld;
+        mos[ne].cgd=mos[ne].cgs;
+        mos[ne].cbg=mos[ne].cox*mos[ne].cp*mos[ne].lg;
+		
+		return 0;//em todos os 3 casos
+  	  }
         
       else if((vd[nao_linear][0]-vs[nao_linear][0])>(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//triodo 
-        if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+        
+        mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+(mos[ne].cox*mos[ne].cp*mos[ne].lg/2;
+        mos[ne].cgd=mos[ne].cgs;
+        mos[ne].cbg=0;
+		
+		if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])-2*(vs[nao_linear][0]-vd[nao_linear][0])+4*mos[ne].lambda*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-3*mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])));
       
         else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
@@ -193,7 +220,12 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
       }
       
       else if((vd[nao_linear][0]-vs[nao_linear][0])<=(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//saturação       
-        if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+        
+		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+2*(mos[ne].cox*mos[ne].cp*mos[ne].lg/3;
+        mos[ne].cgd=mos[ne].cox*mos[ne].cp*mos[ne].ld;
+        mos[ne].cbg=0;
+		
+		if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*mos[ne].lambda);
         
         else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
@@ -373,7 +405,13 @@ int main(void)
       srand(time(NULL));
       nao_linear++;
       sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,comprimento,largura,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
-      //retira os termos "L=" e "W="
+      
+      if (mos[ne].tipo[0]=='N')
+	    mos[ne].cox=(2*mos[ne].transk)/0.05;
+	  else if (mos[ne].tipo[0]=='P')
+	  	mos[ne].cox=(2*mos[ne].transk)/0.02;
+	  	
+	  //retira os termos "L=" e "W="
     strncpy(subLarg, largura + 2, 9);
       strncpy(subComp, comprimento + 2, 9);
       subLarg[9] = '\0';
@@ -445,6 +483,7 @@ int main(void)
       netlist[ne].a=numero(nb);
       netlist[ne].b=numero(na);
       netlist[ne].valor=1e9;
+      netlist[ne].cap
       ne++;
       //capacitancia CGS
       strcpy(netlist[ne].nome,"MCgs");
@@ -957,26 +996,25 @@ int main(void)
               Yn[netlist[i].b][netlist[i].c]-=g;
         }
         else if(strcmp(netlist[i].nome,"MCgd")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
-          g=2*PI*netlist[i].valor*I;
+          g=2*PI*frequencia*mos[i].cgd*I;
           Yn[netlist[i].a][netlist[i].a]+=g;
           Yn[netlist[i].b][netlist[i].b]+=g;
           Yn[netlist[i].a][netlist[i].b]-=g;
           Yn[netlist[i].b][netlist[i].a]-=g;
         }
         else if(strcmp(netlist[i].nome,"MCgs")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
-          g=2*PI*netlist[i].valor*I;
+          g=2*PI*frequencia*mos[i].cgs*I;
           Yn[netlist[i].a][netlist[i].a]+=g;
           Yn[netlist[i].b][netlist[i].b]+=g;
           Yn[netlist[i].a][netlist[i].b]-=g;
           Yn[netlist[i].b][netlist[i].a]-=g;
         }
         else if(strcmp(netlist[i].nome,"MCgb")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
-          g=2*PI*netlist[i].valor*I;
+          g=2*PI*frequencia*mos[i].cbg*I;
           Yn[netlist[i].a][netlist[i].a]+=g;
           Yn[netlist[i].b][netlist[i].b]+=g;
           Yn[netlist[i].a][netlist[i].b]-=g;
           Yn[netlist[i].b][netlist[i].a]-=g;
-          nao_linear++;
         }
       }
   
