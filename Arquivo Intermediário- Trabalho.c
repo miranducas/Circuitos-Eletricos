@@ -617,7 +617,7 @@ int main(void)
             else {
             vt[nao_linear][0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[i].phi));
             }
-            verMOSCond();
+            netlist[i].valor=verMOSCond();
             
         }
         
