@@ -80,7 +80,7 @@ typedef struct transitorMOS {
 
 transistorMOS mos[MAX_ELEM];
 
-double ind_L[MAX_ELEM], cap_C[MAX_ELEM]; /*guarda os valores de indutancia e capacitancia p/ serem utilizados no modelo de peq. sinais*/ 
+double ind_L[MAX_ELEM], cap_C[MAX_ELEM], ind_M, valorLA, valorLB; /*guarda os valores de indutancia e capacitancia p/ serem utilizados no modelo de peq. sinais*/ 
 
 int
   ne, /* Elementos */
@@ -1023,7 +1023,33 @@ int main(void)
         }
       }
       else if (tipo=='K'){
-      	
+      	fim = 0;
+        for (indice = 1; indice <= ne && fim != 2; indice++){
+            if(strcmp(acop_K[i].LA, netlist[indice].nome) == 0){
+                fim++;
+                valorLA = netlist[i].valor;
+            }
+            else if(strcmp(acop_K[i].LB, netlist[indice].nome) == 0){
+                fim++;
+                valorLB = netlist[i].valor;
+            }
+        }
+
+        ind_M = netlist[i].valor*(sqrt(valorLA*valorLB));
+		  
+        Yn[netlist[i].a][netlist[i].x]+=1;
+        Yn[netlist[i].b][netlist[i].x]-=1;
+        Yn[netlist[i].c][netlist[i].y]+=1;
+        Yn[netlist[i].d][netlist[i].y]-=1;
+        Yn[netlist[i].x][netlist[i].a]-=1;
+        Yn[netlist[i].x][netlist[i].b]+=1;
+        Yn[netlist[i].y][netlist[i].c]-=1;
+        Yn[netlist[i].y][netlist[i].d]+=1;
+        Yn[netlist[i].x][netlist[i].x]+=2*PI*frequencia*valorLA*I;
+        Yn[netlist[i].x][netlist[i].y]+=2*PI*frequencia*ind_M*I;
+        Yn[netlist[i].y][netlist[i].x]+=2*PI*frequencia*ind_M*I;
+        Yn[netlist[i].y][netlist[i].y]+=2*PI*frequencia*valorLB*I;
+	
 	  }
   
   }
