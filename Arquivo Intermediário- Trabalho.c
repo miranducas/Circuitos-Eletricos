@@ -24,7 +24,7 @@ Versao 1.0p - 09/07/1016 Newton-Raphson implementado(by fefa), porém, os circui
 Elementos aceitos e linhas do netlist:
 Resistor:      R<nome> <no+> <no-> <resistencia>
 Indutor:       L<nome> <nó+> <nó-> <indutancia>
-Acoplamento:   K<nome> <LA> <LB-> <k> (indutores LA e LB já declarados)
+Acoplamento:   K<nome> <LA> <LB> <k> (indutores LA e LB já declarados)
 Capacitor:     C<nome> <nó+> <nó-> <capacitancia>
 VCCS:          G<nome> <io+> <io-> <vi+> <vi-> <transcondutancia>
 VCVC:          E<nome> <vo+> <vo-> <vi+> <vi-> <ganho de tensao>
@@ -877,6 +877,11 @@ int main(void)
   else
     printf("Solucao do Ponto de Operacao:\n");
 
+  strcpy(txt,"Tensao");
+  for (i=1; i<=nv; i++) {
+    if (i==nn+1) strcpy(txt,"Corrente");
+    printf("%s %s: %g\n",txt,lista[i],Yn[i][nv+1]);
+  }
   
   
   printf("\nAnalise de Resposta em frequencia:\n");
@@ -1009,7 +1014,7 @@ int main(void)
           Yn[netlist[i].a][netlist[i].b]-=g;
           Yn[netlist[i].b][netlist[i].a]-=g;
         }
-        else if(strcmp(netlist[i].nome,"MCgb")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
+        else if(strcmp(netlist[i].nome,"MCgb")==0){
           g=2*PI*frequencia*mos[i].cbg*I;
           Yn[netlist[i].a][netlist[i].a]+=g;
           Yn[netlist[i].b][netlist[i].b]+=g;
@@ -1017,10 +1022,17 @@ int main(void)
           Yn[netlist[i].b][netlist[i].a]-=g;
         }
       }
+      else if (tipo=='K'){
+      	
+	  }
   
   }
-
-  if (resolversistema()){printf("Nao foi possivel resolver o sistema!\n");}
+	
+  if (resolversistema()) {
+      getch();
+      exit;
+  }	
+  
   getch();
 
   strcpy(txt,"Tensao");
