@@ -74,7 +74,7 @@ acoplamento acop_K[MAX_ELEM];
 typedef struct transitorMOS {
    char tipo[MAX_NOME];
    double cp,lg,transK,vt0,lambda,gama,phi,ld,cox,
-   		  cgs,cgd,cbg;
+        cgs,cgd,cbg;
    int invertido;
 } transistorMOS;
 
@@ -86,7 +86,7 @@ int
   ne, /* Elementos */
   nv, /* Variaveis */
   nn, /* Nos */
-  i,j,k,
+  i,j,k, indice,
   inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: vínculo entre nó e tensão (não confundir com valor de tensão!)*/
   ne_extra,nao_linear;
   
@@ -107,18 +107,20 @@ FILE *arquivo;
 double
   g,aux,
   vd[MAX_ELEM][2],vs[MAX_ELEM][2],vg[MAX_ELEM][2],vb[MAX_ELEM][2],vt[MAX_ELEM][2],//tensões auxiliares do transistor MOS
-  Yn[MAX_NOS+1][MAX_NOS+2];//matriz nodal
+  Yn[MAX_NOS+1][MAX_NOS+2],         //matriz nodal
+  YnComplex[MAX_NOS+1][MAX_NOS+2];  //matriz nodal com complexos (análise da resposta em frequencia)
   
  double complex
+  gComplex,
   amplitude,
   frequencia,
   fase;
 
 double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
    if(vd[nao_linear][0]>=vs[nao_linear][0]){
-  	if(vd[nao_linear][0]=vs[nao_linear][0]){
-  		vd[nao_linear][0]+=1e-3;
-	  }
+    if(vd[nao_linear][0]=vs[nao_linear][0]){
+      vd[nao_linear][0]+=1e-3;
+    }
     if(mos[ne].tipo[0]=='N' || mos[ne].tipo[0]=='P'){
       
       if(mos[ne].tipo[0]=='P'){
@@ -130,19 +132,19 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
       
       if((vg[nao_linear][0]-vs[nao_linear][0])<vt[nao_linear][0]){ //corte
         
-		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld;
+    mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld;
         mos[ne].cgd=mos[ne].cgs;
         mos[ne].cbg=mos[ne].cox*mos[ne].cp*mos[ne].lg;
-		
-		return 0;
-	  }//em todos os 3 casos
+    
+    return 0;
+    }//em todos os 3 casos
         
       else if((vd[nao_linear][0]-vs[nao_linear][0])<=(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//triodo 
-      	
-		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+(mos[ne].cox*mos[ne].cp*mos[ne].lg/2;
+        
+    mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+(mos[ne].cox*mos[ne].cp*mos[ne].lg)/2;
         mos[ne].cgd=mos[ne].cgs;
         mos[ne].cbg=0;
-      	
+        
         if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])-2*(vd[nao_linear][0]-vs[nao_linear][0])+4*mos[ne].lambda*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vd[nao_linear][0]-vs[nao_linear][0])-3*mos[ne].lambda*(vd[nao_linear][0]-vs[nao_linear][0])*(vd[nao_linear][0]-vs[nao_linear][0])));
   
@@ -159,11 +161,11 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
       
       else if((vd[nao_linear][0]-vs[nao_linear][0])>(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//saturação        
         
-		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+2*(mos[ne].cox*mos[ne].cp*mos[ne].lg/3;
+    mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+2*(mos[ne].cox*mos[ne].cp*mos[ne].lg)/3;
         mos[ne].cgd=mos[ne].cox*mos[ne].cp*mos[ne].ld;
         mos[ne].cbg=0;
-		
-		if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+    
+    if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])*mos[ne].lambda);
         
         else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
@@ -193,20 +195,20 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
       
       if((vg[nao_linear][0]-vs[nao_linear][0])>vt[nao_linear][0]){ //corte
         
-		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld;
+    mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld;
         mos[ne].cgd=mos[ne].cgs;
         mos[ne].cbg=mos[ne].cox*mos[ne].cp*mos[ne].lg;
-		
-		return 0;//em todos os 3 casos
-  	  }
+    
+    return 0;//em todos os 3 casos
+      }
         
       else if((vd[nao_linear][0]-vs[nao_linear][0])>(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//triodo 
         
-        mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+(mos[ne].cox*mos[ne].cp*mos[ne].lg/2;
+        mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+(mos[ne].cox*mos[ne].cp*mos[ne].lg)/2;
         mos[ne].cgd=mos[ne].cgs;
         mos[ne].cbg=0;
-		
-		if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+    
+    if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(2*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])-2*(vs[nao_linear][0]-vd[nao_linear][0])+4*mos[ne].lambda*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])-3*mos[ne].lambda*(vs[nao_linear][0]-vd[nao_linear][0])*(vs[nao_linear][0]-vd[nao_linear][0])));
       
         else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
@@ -221,11 +223,11 @@ double verMOSCond(void){ //verifica as tensões do transistor MOS e calcula adeq
       
       else if((vd[nao_linear][0]-vs[nao_linear][0])<=(vg[nao_linear][0]-vs[nao_linear][0]-vt[nao_linear][0])){//saturação       
         
-		mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+2*(mos[ne].cox*mos[ne].cp*mos[ne].lg/3;
+        mos[ne].cgs=mos[ne].cox*mos[ne].cp*mos[ne].ld+2*(mos[ne].cox*mos[ne].cp*mos[ne].lg)/3;
         mos[ne].cgd=mos[ne].cox*mos[ne].cp*mos[ne].ld;
         mos[ne].cbg=0;
-		
-		if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
+    
+    if(strcmp(netlist[ne].nome,"MRGds")==0)//se for RGds
           return ((mos[ne].transK)*(mos[ne].cp/mos[ne].lg)*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*(vs[nao_linear][0]-vg[nao_linear][0]+vt[nao_linear][0])*mos[ne].lambda);
         
         else if(strcmp(netlist[ne].nome,"MGm")==0)//se for Gm
@@ -277,6 +279,44 @@ int resolversistema(void)
         for (l=1; l<=nv; l++) {  
     if (l!=i)
       Yn[l][j]-=Yn[l][i]*p;
+        }
+    }
+  }
+  return 0;
+}
+
+int resolversistemaAC(void)
+{
+  int i,j,l,a;
+  double complex t, p;
+
+  for (i=1; i<=nv; i++) {
+    t=0.0 + 0.0 * I;
+    a=i;
+    for (l=i; l<=nv; l++) {
+      if (cabs(YnComplex[l][i])>cabs(t)) {
+  a=l;
+  t=YnComplex[l][i];
+      }
+    }
+    if (i!=a) {
+      for (l=1; l<=nv+1; l++) {
+  p=YnComplex[i][l];
+  YnComplex[i][l]=YnComplex[a][l];
+  YnComplex[a][l]=p;
+      }
+    }
+    if (cabs(t)<TOLG) {
+      printf("Sistema singular\n");
+      return 1;
+    }
+    for (j=nv+1; j>0; j--) {  /* Basta j>i em vez de j>0 */
+      YnComplex[i][j]/= t;
+      p=YnComplex[i][j];
+      if (cabs(p)!=0.0)  /* Evita operacoes com zero */
+        for (l=1; l<=nv; l++) {  
+    if (l!=i)
+      YnComplex[l][j]-=YnComplex[l][i]*p;
         }
     }
   }
@@ -407,11 +447,11 @@ int main(void)
       sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[ne].tipo,comprimento,largura,&mos[ne].transK,&mos[ne].vt0,&mos[ne].lambda,&mos[ne].gama,&mos[ne].phi,&mos[ne].ld);
       
       if (mos[ne].tipo[0]=='N')
-	    mos[ne].cox=(2*mos[ne].transk)/0.05;
-	  else if (mos[ne].tipo[0]=='P')
-	  	mos[ne].cox=(2*mos[ne].transk)/0.02;
-	  	
-	  //retira os termos "L=" e "W="
+      mos[ne].cox=(2*mos[ne].transK)/0.05;
+    else if (mos[ne].tipo[0]=='P')
+      mos[ne].cox=(2*mos[ne].transK)/0.02;
+      
+    //retira os termos "L=" e "W="
     strncpy(subLarg, largura + 2, 9);
       strncpy(subComp, comprimento + 2, 9);
       subLarg[9] = '\0';
@@ -435,10 +475,10 @@ int main(void)
     }
       
       vd[nao_linear][0]=rand()%10; vd[nao_linear][0]=vd[nao_linear][0]/10;
-	    vg[nao_linear][0]=rand()%10; vg[nao_linear][0]=vg[nao_linear][0]/10;
+      vg[nao_linear][0]=rand()%10; vg[nao_linear][0]=vg[nao_linear][0]/10;
       vs[nao_linear][0]=rand()%10; vs[nao_linear][0]=vs[nao_linear][0]/10; 
-	    //vb[nao_linear][0]=rand()%10; vb[nao_linear][0]=vb[nao_linear][0]/10; 
-	    vb[nao_linear][0]=mos[ne].phi/2+vs[nao_linear][0]; //valores iniciais aleatórios entre 0 e 1 para as tensões
+      //vb[nao_linear][0]=rand()%10; vb[nao_linear][0]=vb[nao_linear][0]/10; 
+      vb[nao_linear][0]=mos[ne].phi/2+vs[nao_linear][0]; //valores iniciais aleatórios entre 0 e 1 para as tensões
       vt[nao_linear][0]=mos[ne].vt0+mos[ne].gama*(sqrt(mos[ne].phi-(vb[nao_linear][0]-vs[nao_linear][0]))-sqrt(mos[ne].phi));
      ne++;
     //resistor RDS
@@ -483,7 +523,7 @@ int main(void)
       netlist[ne].a=numero(nb);
       netlist[ne].b=numero(na);
       netlist[ne].valor=1e9;
-      netlist[ne].cap
+
       ne++;
       //capacitancia CGS
       strcpy(netlist[ne].nome,"MCgs");
@@ -884,7 +924,7 @@ int main(void)
   }
   
   
-  printf("\nAnalise de Resposta em frequencia:\n");
+  printf("\nAnalise de Resposta em Frequencia:\n");
   
   inc_L=0; inc_C=0;
   
@@ -898,76 +938,76 @@ int main(void)
         tipo = netlist[i].nome[0];
         if (tipo=='R') {
           g=1/netlist[i].valor;
-          Yn[netlist[i].a][netlist[i].a]+=g;
-          Yn[netlist[i].b][netlist[i].b]+=g;
-          Yn[netlist[i].a][netlist[i].b]-=g;
-          Yn[netlist[i].b][netlist[i].a]-=g;
+          YnComplex[netlist[i].a][netlist[i].a]+=g;
+          YnComplex[netlist[i].b][netlist[i].b]+=g;
+          YnComplex[netlist[i].a][netlist[i].b]-=g;
+          YnComplex[netlist[i].b][netlist[i].a]-=g;
         }
         else if (tipo=='C' ) {//estampa do capacitor (resp em freq)
           inc_C++;      
-          g=2*PI*frequencia*cap_C[inc_C]*I;
-          Yn[netlist[i].a][netlist[i].a]+=g;
-          Yn[netlist[i].b][netlist[i].b]+=g;
-          Yn[netlist[i].a][netlist[i].b]-=g;
-          Yn[netlist[i].b][netlist[i].a]-=g;
+          gComplex=2*PI*frequencia*cap_C[inc_C]*I;
+          YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
+          YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
+          YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
+          YnComplex[netlist[i].b][netlist[i].a]-=gComplex;
         }
         else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
           inc_L++;
-          g=1/(2*PI*frequencia*ind_L[inc_L]*I);
-          Yn[netlist[i].a][netlist[i].x]+=1;
-          Yn[netlist[i].b][netlist[i].x]-=1;
-          Yn[netlist[i].x][netlist[i].a]-=1;
-          Yn[netlist[i].x][netlist[i].b]+=1;
-          Yn[netlist[i].x][netlist[i].x]+=g;
+          gComplex=1/(2*PI*frequencia*ind_L[inc_L]*I);
+          YnComplex[netlist[i].a][netlist[i].x]+=1;
+          YnComplex[netlist[i].b][netlist[i].x]-=1;
+          YnComplex[netlist[i].x][netlist[i].a]-=1;
+          YnComplex[netlist[i].x][netlist[i].b]+=1;
+          YnComplex[netlist[i].x][netlist[i].x]+=gComplex;
         }
         else if (tipo=='G') {
           g=netlist[i].valor;
-          Yn[netlist[i].a][netlist[i].c]+=g;
-          Yn[netlist[i].b][netlist[i].d]+=g;
-          Yn[netlist[i].a][netlist[i].d]-=g;
-          Yn[netlist[i].b][netlist[i].c]-=g;
+          YnComplex[netlist[i].a][netlist[i].c]+=g;
+          YnComplex[netlist[i].b][netlist[i].d]+=g;
+          YnComplex[netlist[i].a][netlist[i].d]-=g;
+          YnComplex[netlist[i].b][netlist[i].c]-=g;
           
         }
         else if (tipo=='I') {
-            Yn[netlist[i].a][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase));
-            Yn[netlist[i].b][nv+1]= netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase);
+            YnComplex[netlist[i].a][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase));
+            YnComplex[netlist[i].b][nv+1]= netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase);
         }
         else if (tipo=='V') {
-            Yn[netlist[i].a][netlist[i].x]+=1;
-            Yn[netlist[i].b][netlist[i].x]-=1;
-            Yn[netlist[i].x][netlist[i].a]-=1;
-            Yn[netlist[i].x][netlist[i].b]+=1;
-            Yn[netlist[i].x][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase)); 
+            YnComplex[netlist[i].a][netlist[i].x]+=1;
+            YnComplex[netlist[i].b][netlist[i].x]-=1;
+            YnComplex[netlist[i].x][netlist[i].a]-=1;
+            YnComplex[netlist[i].x][netlist[i].b]+=1;
+            YnComplex[netlist[i].x][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase)); 
         }
         else if (tipo=='E') {
           g=netlist[i].valor;
-          Yn[netlist[i].a][netlist[i].x]+=1;
-          Yn[netlist[i].b][netlist[i].x]-=1;
-          Yn[netlist[i].x][netlist[i].a]-=1;
-          Yn[netlist[i].x][netlist[i].b]+=1;
-          Yn[netlist[i].x][netlist[i].c]+=g;
-          Yn[netlist[i].x][netlist[i].d]-=g;
+          YnComplex[netlist[i].a][netlist[i].x]+=1;
+          YnComplex[netlist[i].b][netlist[i].x]-=1;
+          YnComplex[netlist[i].x][netlist[i].a]-=1;
+          YnComplex[netlist[i].x][netlist[i].b]+=1;
+          YnComplex[netlist[i].x][netlist[i].c]+=g;
+          YnComplex[netlist[i].x][netlist[i].d]-=g;
         }
         else if (tipo=='F') {
           g=netlist[i].valor;
-          Yn[netlist[i].a][netlist[i].x]+=g;
-          Yn[netlist[i].b][netlist[i].x]-=g;
-          Yn[netlist[i].c][netlist[i].x]+=1;
-          Yn[netlist[i].d][netlist[i].x]-=1;
-          Yn[netlist[i].x][netlist[i].c]-=1;
-          Yn[netlist[i].x][netlist[i].d]+=1;
+          YnComplex[netlist[i].a][netlist[i].x]+=g;
+          YnComplex[netlist[i].b][netlist[i].x]-=g;
+          YnComplex[netlist[i].c][netlist[i].x]+=1;
+          YnComplex[netlist[i].d][netlist[i].x]-=1;
+          YnComplex[netlist[i].x][netlist[i].c]-=1;
+          YnComplex[netlist[i].x][netlist[i].d]+=1;
         }
         else if (tipo=='H') {
           g=netlist[i].valor;
-          Yn[netlist[i].a][netlist[i].y]+=1;
-          Yn[netlist[i].b][netlist[i].y]-=1;
-          Yn[netlist[i].c][netlist[i].x]+=1;
-          Yn[netlist[i].d][netlist[i].x]-=1;
-          Yn[netlist[i].y][netlist[i].a]-=1;
-          Yn[netlist[i].y][netlist[i].b]+=1;
-          Yn[netlist[i].x][netlist[i].c]-=1;
-          Yn[netlist[i].x][netlist[i].d]+=1;
-          Yn[netlist[i].y][netlist[i].x]+=g;
+          YnComplex[netlist[i].a][netlist[i].y]+=1;
+          YnComplex[netlist[i].b][netlist[i].y]-=1;
+          YnComplex[netlist[i].c][netlist[i].x]+=1;
+          YnComplex[netlist[i].d][netlist[i].x]-=1;
+          YnComplex[netlist[i].y][netlist[i].a]-=1;
+          YnComplex[netlist[i].y][netlist[i].b]+=1;
+          YnComplex[netlist[i].x][netlist[i].c]-=1;
+          YnComplex[netlist[i].x][netlist[i].d]+=1;
+          YnComplex[netlist[i].y][netlist[i].x]+=g;
         }
         else if (tipo=='O') {
           Yn[netlist[i].a][netlist[i].x]+=1;
@@ -979,92 +1019,92 @@ int main(void)
         g=netlist[i].valor;  
           
         if(strcmp(netlist[i].nome,"MRGds")==0){
-            Yn[netlist[i].a][netlist[i].a]+=g;
-            Yn[netlist[i].b][netlist[i].b]+=g;
-            Yn[netlist[i].a][netlist[i].b]-=g;
-            Yn[netlist[i].b][netlist[i].a]-=g;  
+            YnComplex[netlist[i].a][netlist[i].a]+=g;
+            YnComplex[netlist[i].b][netlist[i].b]+=g;
+            YnComplex[netlist[i].a][netlist[i].b]-=g;
+            YnComplex[netlist[i].b][netlist[i].a]-=g;  
         }
         else if(strcmp(netlist[i].nome,"MIds")==0){
-            Yn[netlist[i].a][nv+1]=0;
-            Yn[netlist[i].b][nv+1]=0;
+            YnComplex[netlist[i].a][nv+1]=0;
+            YnComplex[netlist[i].b][nv+1]=0;
         }
         else if(strcmp(netlist[i].nome,"MGm")==0){
-              Yn[netlist[i].a][netlist[i].c]+=g;
-              Yn[netlist[i].b][netlist[i].d]+=g;
-              Yn[netlist[i].a][netlist[i].d]-=g;
-              Yn[netlist[i].b][netlist[i].c]-=g;
+              YnComplex[netlist[i].a][netlist[i].c]+=g;
+              YnComplex[netlist[i].b][netlist[i].d]+=g;
+              YnComplex[netlist[i].a][netlist[i].d]-=g;
+              YnComplex[netlist[i].b][netlist[i].c]-=g;
         }
         else if(strcmp(netlist[i].nome,"MGmb")==0){
-              Yn[netlist[i].a][netlist[i].c]+=g;
-              Yn[netlist[i].b][netlist[i].d]+=g;
-              Yn[netlist[i].a][netlist[i].d]-=g;
-              Yn[netlist[i].b][netlist[i].c]-=g;
+              YnComplex[netlist[i].a][netlist[i].c]+=g;
+              YnComplex[netlist[i].b][netlist[i].d]+=g;
+              YnComplex[netlist[i].a][netlist[i].d]-=g;
+              YnComplex[netlist[i].b][netlist[i].c]-=g;
         }
         else if(strcmp(netlist[i].nome,"MCgd")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
-          g=2*PI*frequencia*mos[i].cgd*I;
-          Yn[netlist[i].a][netlist[i].a]+=g;
-          Yn[netlist[i].b][netlist[i].b]+=g;
-          Yn[netlist[i].a][netlist[i].b]-=g;
-          Yn[netlist[i].b][netlist[i].a]-=g;
+          gComplex=2*PI*frequencia*mos[i].cgd*I;
+          YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
+          YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
+          YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
+          YnComplex[netlist[i].b][netlist[i].a]-=gComplex;
         }
         else if(strcmp(netlist[i].nome,"MCgs")==0){//não esquecer de manter os mesmos valores prs capacitores!!!
-          g=2*PI*frequencia*mos[i].cgs*I;
-          Yn[netlist[i].a][netlist[i].a]+=g;
-          Yn[netlist[i].b][netlist[i].b]+=g;
-          Yn[netlist[i].a][netlist[i].b]-=g;
-          Yn[netlist[i].b][netlist[i].a]-=g;
+          gComplex=2*PI*frequencia*mos[i].cgs*I;
+          YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
+          YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
+          YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
+          YnComplex[netlist[i].b][netlist[i].a]-=gComplex;
         }
         else if(strcmp(netlist[i].nome,"MCgb")==0){
-          g=2*PI*frequencia*mos[i].cbg*I;
-          Yn[netlist[i].a][netlist[i].a]+=g;
-          Yn[netlist[i].b][netlist[i].b]+=g;
-          Yn[netlist[i].a][netlist[i].b]-=g;
-          Yn[netlist[i].b][netlist[i].a]-=g;
+          gComplex=2*PI*frequencia*mos[i].cbg*I;
+          YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
+          YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
+          YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
+          YnComplex[netlist[i].b][netlist[i].a]-=gComplex;
         }
       }
       else if (tipo=='K'){
-      	fim = 0;
+        fim = 0;
         for (indice = 1; indice <= ne && fim != 2; indice++){
-            if(strcmp(acop_K[i].LA, netlist[indice].nome) == 0){
+            if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
                 fim++;
                 valorLA = netlist[i].valor;
             }
-            else if(strcmp(acop_K[i].LB, netlist[indice].nome) == 0){
+            else if(strcmp(acop_K[i].lB, netlist[indice].nome) == 0){
                 fim++;
                 valorLB = netlist[i].valor;
             }
         }
 
         ind_M = netlist[i].valor*(sqrt(valorLA*valorLB));
-		  
-        Yn[netlist[i].a][netlist[i].x]+=1;
-        Yn[netlist[i].b][netlist[i].x]-=1;
-        Yn[netlist[i].c][netlist[i].y]+=1;
-        Yn[netlist[i].d][netlist[i].y]-=1;
-        Yn[netlist[i].x][netlist[i].a]-=1;
-        Yn[netlist[i].x][netlist[i].b]+=1;
-        Yn[netlist[i].y][netlist[i].c]-=1;
-        Yn[netlist[i].y][netlist[i].d]+=1;
-        Yn[netlist[i].x][netlist[i].x]+=2*PI*frequencia*valorLA*I;
-        Yn[netlist[i].x][netlist[i].y]+=2*PI*frequencia*ind_M*I;
-        Yn[netlist[i].y][netlist[i].x]+=2*PI*frequencia*ind_M*I;
-        Yn[netlist[i].y][netlist[i].y]+=2*PI*frequencia*valorLB*I;
-	
-	  }
+      
+        YnComplex[netlist[i].a][netlist[i].x]+=1;
+        YnComplex[netlist[i].b][netlist[i].x]-=1;
+        YnComplex[netlist[i].c][netlist[i].y]+=1;
+        YnComplex[netlist[i].d][netlist[i].y]-=1;
+        YnComplex[netlist[i].x][netlist[i].a]-=1;
+        YnComplex[netlist[i].x][netlist[i].b]+=1;
+        YnComplex[netlist[i].y][netlist[i].c]-=1;
+        YnComplex[netlist[i].y][netlist[i].d]+=1;
+        YnComplex[netlist[i].x][netlist[i].x]+=2*PI*frequencia*valorLA*I;
+        YnComplex[netlist[i].x][netlist[i].y]+=2*PI*frequencia*ind_M*I;
+        YnComplex[netlist[i].y][netlist[i].x]+=2*PI*frequencia*ind_M*I;
+        YnComplex[netlist[i].y][netlist[i].y]+=2*PI*frequencia*valorLB*I;
+  
+    }
   
   }
-	
-  if (resolversistema()) {
+  
+  if (resolversistemaAC()) {
       getch();
       exit;
-  }	
+  } 
   
   getch();
 
   strcpy(txt,"Tensao");
   for (i=1; i<=nv; i++) {
     if (i==nn+1) strcpy(txt,"Corrente");
-    printf("%s %s: %g\n",txt,lista[i],Yn[i][nv+1]);
+    printf("%s %s: %e + %ei \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
   }
   return 0;
 
