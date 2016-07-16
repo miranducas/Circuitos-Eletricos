@@ -53,7 +53,7 @@ Os nos podem ser nomes
 #define MAX_NOME 11
 #define MAX_ELEM 500
 #define MAX_NOS 50
-#define TOLG 1e-50
+#define TOLG 1e-30
 #define PI 3.14159265358979
 #define UM 0.999999999999999999999999999999999999999999 //utilizado para tratar os erros numericos no seno e cosseno
 #define ZERO 0.0000000000000000000000000000000000000001 //utilizado para tratar os erros numericos no seno e cosseno
@@ -471,16 +471,16 @@ void montaEstampaAC(void){
           
         }
         else if (tipo=='I') {
-            YnComplex[netlist[i].a][nv+1]-= netlist[ne].modulo*cosd(netlist[ne].fase) + I*netlist[ne].modulo*sind(netlist[ne].fase);
-            YnComplex[netlist[i].b][nv+1]+= netlist[ne].modulo*cosd(netlist[ne].fase) + I*netlist[ne].modulo*sind(netlist[ne].fase);
-        }
+            YnComplex[netlist[i].a][nv+1]-= netlist[i].modulo*cosd(netlist[i].fase) + I*netlist[i].modulo*sind(netlist[i].fase);
+            YnComplex[netlist[i].b][nv+1]+= netlist[i].modulo*cosd(netlist[i].fase) + I*netlist[i].modulo*sind(netlist[i].fase);
+		}
         else if (tipo=='V') {
             YnComplex[netlist[i].a][netlist[i].x]+=1;
             YnComplex[netlist[i].b][netlist[i].x]-=1;
             YnComplex[netlist[i].x][netlist[i].a]-=1;
             YnComplex[netlist[i].x][netlist[i].b]+=1;
-            YnComplex[netlist[i].x][nv+1]-=netlist[ne].modulo*cosd(netlist[ne].fase) + I*netlist[ne].modulo*sind(netlist[ne].fase); 
-        }
+            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd(netlist[i].fase) + I*netlist[i].modulo*sind(netlist[i].fase); 
+		}
         else if (tipo=='E') {
           g=netlist[i].valor;
           YnComplex[netlist[i].a][netlist[i].x]+=1;
@@ -1050,7 +1050,7 @@ int main(void)
 			strcpy(txt,"Tensao");
 			for (i=1; i<=nv; i++) {
     			if (i==nn+1) strcpy(txt,"Corrente");
-    			printf("%s %s: %e + %ei \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+    			printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
     		
   			}
 			  	getch();					
@@ -1065,7 +1065,7 @@ int main(void)
 			strcpy(txt,"Tensao");
 			for (i=1; i<=nv; i++) {
     			if (i==nn+1) strcpy(txt,"Corrente");
-    			printf("%s %s: %e + %ei \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+    			printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
     		}
 				getch();				
 	  }
@@ -1080,7 +1080,7 @@ int main(void)
   		  	strcpy(txt,"Tensao");
 			for (i=1; i<=nv; i++) {
     			if (i==nn+1) strcpy(txt,"Corrente");
-    			printf("%s %s: %e + %ei \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+    			printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
     			}
 			  	getch();					
 	  }
@@ -1101,7 +1101,7 @@ else if (tem==0){
   strcpy(txt,"Tensao");
   for (i=1; i<=nv; i++) {
     if (i==nn+1) strcpy(txt,"Corrente");
-    printf("%s %s: %e + %ei \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+    printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
   }
   
   getch();
