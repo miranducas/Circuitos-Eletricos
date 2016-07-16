@@ -12,20 +12,20 @@ Versao 1.0g - 15/10/2009 Le as linhas inteiras
 Versao 1.0h - 18/6/2011 Estampas correspondendo a modelos
 Versao 1.0i - 03/11/2013 Correcoes em *p e saida com sistema singular.
 Versao 1.0j - 26/11/2015 Evita operacoes com zero.
-Versao 1.0k - 23/06/2016 Calcula P.O. com L, C e K (o acoplamento È ignorado, pois P.O. È an·lise DC)
+Versao 1.0k - 23/06/2016 Calcula P.O. com L, C e K (o acoplamento √© ignorado, pois P.O. √© an√°lise DC)
 Versao 1.0l - 24/06/2016 Leitura do netlist para elemento MOS 
-Versao 1.0m - 27/06/2016 Tensıes iniciais aleatÛrias atribuÌdas (para NP) e verificaÁ„o dos 3 modos de operaÁ„o dos MOS 
-Versao 1.0n - 03/07/2016 LinearizaÁ„o dos transistores MOS para valores iniciais. CriaÁ„o da funÁ„o verMOSCond(). Falta resolver I0
+Versao 1.0m - 27/06/2016 Tens√µes iniciais aleat√≥rias atribu√≠das (para NP) e verifica√ß√£o dos 3 modos de opera√ß√£o dos MOS 
+Versao 1.0n - 03/07/2016 Lineariza√ß√£o dos transistores MOS para valores iniciais. Cria√ß√£o da fun√ß√£o verMOSCond(). Falta resolver I0
 Versao 1.0o - 06/07/2016 I0 "supostamente" resolvido
-Versao 1.0p - 09/07/1016 Newton-Raphson implementado(by fefa), porÈm, os circuitos com elementos MOS n„o convergem....
+Versao 1.0p - 09/07/1016 Newton-Raphson implementado(by fefa), por√©m, os circuitos com elementos MOS n√£o convergem....
 */
 
 /*
 Elementos aceitos e linhas do netlist:
 Resistor:      R<nome> <no+> <no-> <resistencia>
-Indutor:       L<nome> <nÛ+> <nÛ-> <indutancia>
-Acoplamento:   K<nome> <LA> <LB> <k> (indutores LA e LB j· declarados)
-Capacitor:     C<nome> <nÛ+> <nÛ-> <capacitancia>
+Indutor:       L<nome> <n√≥+> <n√≥-> <indutancia>
+Acoplamento:   K<nome> <LA> <LB> <k> (indutores LA e LB j√° declarados)
+Capacitor:     C<nome> <n√≥+> <n√≥-> <capacitancia>
 VCCS:          G<nome> <io+> <io-> <vi+> <vi-> <transcondutancia>
 VCVC:          E<nome> <vo+> <vo-> <vi+> <vi-> <ganho de tensao>
 CCCS:          F<nome> <io+> <io-> <ii+> <ii-> <ganho de corrente>
@@ -33,13 +33,13 @@ CCVS:          H<nome> <vo+> <vo-> <ii+> <ii-> <transresistencia>
 Fonte I:       I<nome> <io+> <io-> <corrente>
 Fonte V:       V<nome> <vo+> <vo-> <tensao>
 Amp. op.:      O<nome> <vo1> <vo2> <vi1> <vi2>
-TransistorMOS: M<nome> <nÛd> <nÛg> <nÛs> <nÛb> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
+TransistorMOS: M<nome> <n√≥d> <n√≥g> <n√≥s> <n√≥b> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
 As fontes F e H tem o ramo de entrada em curto
 O amplificador operacional ideal tem a saida suspensa
 Os nos podem ser nomes
 */
 
-//Trabalho de Circuitos ElÈtricos 2 - 
+//Trabalho de Circuitos El√©tricos 2 - 
 #define versao "1.0 - 14/07/2016"
 #include <stdio.h>
 #include <conio.h>
@@ -53,8 +53,10 @@ Os nos podem ser nomes
 #define MAX_NOME 11
 #define MAX_ELEM 500
 #define MAX_NOS 50
-#define TOLG 1e-20
+#define TOLG 1e-50
 #define PI 3.14159265358979
+#define UM 0.999999999999999999999999999999999999999999 //utilizado para tratar os erros numericos no seno e cosseno
+#define ZERO 0.0000000000000000000000000000000000000001 //utilizado para tratar os erros numericos no seno e cosseno
 #define DEBUG
 
 typedef struct elemento { /* Elemento do netlist */
@@ -91,7 +93,7 @@ int
   nv, /* Variaveis */
   nn, /* Nos */
   i,j,k, indice,
-  inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: vÌnculo entre nÛ e tens„o (n„o confundir com valor de tens„o!)*/
+  inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: v√≠nculo entre n√≥ e tens√£o (n√£o confundir com valor de tens√£o!)*/
   ne_extra,linear;
   
 short fim = 0, contadorMos = 0;
@@ -110,21 +112,43 @@ FILE *arquivo;
 
 double
   g,aux,freqInicial,freqFinal,frequencia,pontos,passo,
-  Yn[MAX_NOS+1][MAX_NOS+2],         //matriz nodal
-  YnComplex[MAX_NOS+1][MAX_NOS+2];  //matriz nodal com complexos (an·lise da resposta em frequencia)
+  Yn[MAX_NOS+1][MAX_NOS+2];        //matriz nodal
   
- double complex
-  gComplex,
-  amplitude,
-  fase;
+double complex 
+    gComplex, amplitude, fase,
+    YnComplex[MAX_NOS+1][MAX_NOS+2];  //matriz nodal com complexos (an√°lise da resposta em frequencia)
+
+double sind (double ang)
+{
+    double t = sin( (ang / 180.0) * PI );
+    if (fabs(t) > UM)
+        return (1.0);
+    if (fabs(t) < ZERO)
+        return (0.0);
+
+    return (t);
+}
+
+double cosd (double ang)
+{
+    double t = cos( (ang / 180.0) * PI );
+    if (fabs(t) > UM)
+        return (1.0);
+    if (fabs(t) < ZERO)
+        return (0.0);
+
+    return cos( (ang / 180.0) * PI );
+}
+
+
 
 void verMOSCond(void){
- //verifica as tensıes do transistor MOS e calcula adequadamente as condut‚ncias linearizadas
+ //verifica as tens√µes do transistor MOS e calcula adequadamente as condut√¢ncias linearizadas
 	mos[linear].invertido=0;
    if(mos[linear].vd[0]>=mos[linear].vs[0]){
     	if(mos[linear].vd[0]=mos[linear].vs[0]){
-      		mos[linear].vd[0]+=1e-3;
-    	}
+      	mos[linear].vd[0]+=1e-3;
+    }
     if(mos[linear].tipo[0]=='N' || mos[linear].tipo[0]=='P'){
       //VERIFICA INVERSAO
       if(mos[linear].tipo[0]=='P'){
@@ -142,7 +166,7 @@ void verMOSCond(void){
       }
         //TRIODO
       else if((mos[linear].vd[0]-mos[linear].vs[0])<=(mos[linear].vg[0]-mos[linear].vs[0]-mos[linear].vt[0])){         
-        mos[linear]	.cgs=mos[linear]	.cox*mos[linear]	.cp*mos[linear].ld+(mos[linear].cox*mos[linear].cp*mos[linear].lg)/2;
+        mos[linear]	.cgs=mos[linear].cox*mos[linear].cp*mos[linear].ld+(mos[linear].cox*mos[linear].cp*mos[linear].lg)/2;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=0;        
         mos[linear].rgds = ((mos[linear].transK)*(mos[linear].cp/mos[linear].lg)*(2*(mos[linear].vg[0]-mos[linear].vs[0]-mos[linear].vt[0])-2*(mos[linear].vd[0]-mos[linear].vs[0])+4*mos[linear].lambda*(mos[linear].vg[0]-mos[linear].vs[0]-mos[linear].vt[0])*(mos[linear].vd[0]-mos[linear].vs[0])-3*mos[linear].lambda*(mos[linear].vd[0]-mos[linear].vs[0])*(mos[linear].vd[0]-mos[linear].vs[0])));
@@ -321,25 +345,25 @@ void montaEstampaDC(void){
         }
       else if (tipo=='M') {
         linear++; 
-        if(contador>1){ //entra aqui apenas a partir da segunda iteraÁ„o do Newton-Raphson
+        if(contador>1){ //entra aqui apenas a partir da segunda itera√ß√£o do Newton-Raphson
           for(j=0;j<=3;j++){
                 if(j==0 && tensaoMOS[linear][j]==netlist[i].a){                     
-                     if (convergencia[linear][j] == 0 && contador % 1000 == 0){mos[linear].vd[0] = rand()%21 - 10;}
+                     if (convergencia[linear][j] == 0 && contador % 10000 == 0){mos[linear].vd[0] = rand()%21 - 10;}
                      else {mos[linear].vd[0] = mos[linear].vd[1];}
                 } 
               
                 	else if(j==1 && tensaoMOS[linear][j]==netlist[i].c){            
-                     	if (convergencia[linear][j] == 0 && contador % 1000 == 0){mos[linear].vg[0] = rand()%21 - 10;}
+                     	if (convergencia[linear][j] == 0 && contador % 10000 == 0){mos[linear].vg[0] = rand()%21 - 10;}
                       	else {mos[linear].vg[0] = mos[linear].vg[1];}
                 }
               
                 	else if(j==2 && tensaoMOS[linear][j]==netlist[i].b){            
-                    	 if (convergencia[linear][j] == 0 && contador % 1000 == 0){mos[linear].vs[0] = rand()%21 - 10;}
+                    	 if (convergencia[linear][j] == 0 && contador % 10000 == 0){mos[linear].vs[0] = rand()%21 - 10;}
                 		else {mos[linear].vs[0] = mos[linear].vs[1];}
                 }
           
                     else if(j==3 && tensaoMOS[linear][j]==netlist[i].d){
-                     	if (convergencia[linear][j] == 0 && contador % 1000 == 0){mos[linear].vb[0] = rand()%21 - 10;}
+                     	if (convergencia[linear][j] == 0 && contador % 10000 == 0){mos[linear].vb[0] = rand()%21 - 10;}
                     	else {mos[linear].vb[0] = mos[linear].vb[1];}
                 }
           }
@@ -423,7 +447,7 @@ void montaEstampaAC(void){
         }
         else if (tipo=='C' ) {//estampa do capacitor (resp em freq)
           inc_C++;      
-          gComplex=2*PI*frequencia*cap_C[inc_C]*I;
+          gComplex=2*(double)PI*frequencia*cap_C[inc_C]*I;
           YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
           YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
           YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
@@ -431,7 +455,7 @@ void montaEstampaAC(void){
         }
         else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
           inc_L++;
-          gComplex=2*PI*frequencia*ind_L[inc_L]*I;//printf("\n gcomplexo do indutor eh: %e + i%e \n",creal(gComplex),cimag(gComplex));
+          gComplex=2*(double)PI*frequencia*ind_L[inc_L]*I;//printf("\n gcomplexo do indutor eh: %e + i%e \n",creal(gComplex),cimag(gComplex));
           YnComplex[netlist[i].a][netlist[i].x]+=1;
           YnComplex[netlist[i].b][netlist[i].x]-=1;
           YnComplex[netlist[i].x][netlist[i].a]-=1;
@@ -447,15 +471,15 @@ void montaEstampaAC(void){
           
         }
         else if (tipo=='I') {
-            YnComplex[netlist[i].a][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase));
-            YnComplex[netlist[i].b][nv+1]= netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase);
+            YnComplex[netlist[i].a][nv+1]-= netlist[ne].modulo*cosd(netlist[ne].fase) + I*netlist[ne].modulo*sind(netlist[ne].fase);
+            YnComplex[netlist[i].b][nv+1]+= netlist[ne].modulo*cosd(netlist[ne].fase) + I*netlist[ne].modulo*sind(netlist[ne].fase);
         }
         else if (tipo=='V') {
             YnComplex[netlist[i].a][netlist[i].x]+=1;
             YnComplex[netlist[i].b][netlist[i].x]-=1;
             YnComplex[netlist[i].x][netlist[i].a]-=1;
             YnComplex[netlist[i].x][netlist[i].b]+=1;
-            YnComplex[netlist[i].x][nv+1]= -(netlist[ne].modulo*cos(netlist[ne].fase) + I*netlist[ne].modulo*sin(netlist[ne].fase)); 
+            YnComplex[netlist[i].x][nv+1]-=netlist[ne].modulo*cosd(netlist[ne].fase) + I*netlist[ne].modulo*sind(netlist[ne].fase); 
         }
         else if (tipo=='E') {
           g=netlist[i].valor;
@@ -581,13 +605,13 @@ void montaEstampaAC(void){
 void verificaConvergencia(void)
 {
 	for(k=1;k<=linear;k++) {        
-      /*se nv estiver associada a alguma das 4 tensÛes de cada um dos MOSFETS*/
-      /*i: roda o numero de vari·veis do sistema, j: roda as 4 tensıes de cada MOS, k: roda o numero de MOS(qtde de elementos nao lineares no circuito)*/
+      /*se nv estiver associada a alguma das 4 tens√≥es de cada um dos MOSFETS*/
+      /*i: roda o numero de vari√°veis do sistema, j: roda as 4 tens√µes de cada MOS, k: roda o numero de MOS(qtde de elementos nao lineares no circuito)*/
        for (i=1; i<=ne; i++){
         if (netlist[i].nome[0]=='M'){        
             for(j=0;j<=3;j++){
   
-          	if(j==0 && tensaoMOS[k][j]== netlist[i].a ){//incrementar o i, pq ele est· rodando cada M do netlist
+          	if(j==0 && tensaoMOS[k][j]== netlist[i].a ){//incrementar o i, pq ele est√° rodando cada M do netlist
               mos[k].vd[1]=Yn[i][nv+1];
               if ((mos[k].vd[1] > 1) && (fabs((mos[k].vd[1]-mos[k].vd[0])/mos[k].vd[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -599,7 +623,7 @@ void verificaConvergencia(void)
               }
           }
             
-          else  if(j==1 && tensaoMOS[k][j]== netlist[i].c ){//incrementar o i, pq ele est· rodando cada M do netlist
+          else  if(j==1 && tensaoMOS[k][j]== netlist[i].c ){//incrementar o i, pq ele est√° rodando cada M do netlist
               mos[k].vg[1]=Yn[i][nv+1];
               if ((mos[k].vg[1] > 1) && (fabs((mos[k].vg[1]-mos[k].vg[0])/mos[k].vg[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -611,7 +635,7 @@ void verificaConvergencia(void)
               }
           }
             
-        else  if(j==2 && tensaoMOS[k][j]== netlist[i].b ){//incrementar o i, pq ele est· rodando cada M do netlist
+        else  if(j==2 && tensaoMOS[k][j]== netlist[i].b ){//incrementar o i, pq ele est√° rodando cada M do netlist
               mos[k].vs[1]=Yn[i][nv+1];
               if ((mos[k].vs[1] > 1) && (fabs((mos[k].vs[1]-mos[k].vs[0])/mos[k].vs[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -622,7 +646,7 @@ void verificaConvergencia(void)
                   mos[k].vs[0]=mos[k].vs[1];
               }
           }
-        else  if(j==3 && tensaoMOS[k][j]== netlist[i].d ){//incrementar o i, pq ele est· rodando cada M do netlist
+        else  if(j==3 && tensaoMOS[k][j]== netlist[i].d ){//incrementar o i, pq ele est√° rodando cada M do netlist
               mos[k].vb[1]=Yn[i][nv+1];
               if ((mos[k].vb[1] > 1) && (fabs((mos[k].vb[1]-mos[k].vb[0])/mos[k].vb[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -856,13 +880,13 @@ int main(void)
       sscanf(subComp, "%lg", &mos[linear].cp);
       
     printf("%s %s %s %s %s %s %g %g %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[linear].tipo,mos[linear].cp,mos[linear].lg,mos[linear].transK,mos[linear].vt0,mos[linear].lambda,mos[linear].gama,mos[linear].phi,mos[linear].ld);
-      //TransistorMOS: M<nome> <nÛd> <nÛg> <nÛs> <nÛb> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
+      //TransistorMOS: M<nome> <n√≥d> <n√≥g> <n√≥s> <n√≥b> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
     	
  	  strcpy(netlist[ne].tipo,mos[linear].tipo);   
 	  mos[linear].vd[0]=0.1;
 	  mos[linear].vg[0]=0.1;
 	  mos[linear].vs[0]=0.1;
-      mos[linear].vb[0]=mos[linear].phi/2+mos[linear].vs[0]; //valores iniciais aleatÛrios entre 0 e 1 para as tensıes
+      mos[linear].vb[0]=mos[linear].phi/2+mos[linear].vs[0]; //valores iniciais aleat√≥rios entre 0 e 1 para as tens√µes
       mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-(mos[linear].vb[0]-mos[linear].vs[0]))-sqrt(mos[linear].phi));     
       verMOSCond();
 	  //resistor RDS
@@ -937,7 +961,7 @@ int main(void)
   getch();
    /* Monta o sistema nodal modificado */
   if(linear>0) {
-    printf("O circuito e nao linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos nao lineares (que se decompoe em %d elementos linearizados)., com ne=%d\n",nn,nv,ne-8*linear,linear,linear*7,ne);
+    printf("O circuito e nao linear. Seu modelo linearizado tem %d nos, %d variaveis, %d elementos lineares e %d elementos nao lineares (que se decompoe em %d elementos linearizados)., com ne=%d\n",nn,nv,ne-linear,linear,linear*7,ne);
   }
   else {
     printf("O circuito e linear.  Tem %d nos, %d variaveis e %d elementos\n",nn,nv,ne);
@@ -956,11 +980,11 @@ int main(void)
   
   /* Monta estampas */
   while(fim==0){
-      linear=0;                       
+     linear=0;                       
      montaEstampaDC();        
       /* Resolve o sistema */
     if (resolversistema()) {
-      mostraNetlist();
+      //mostraNetlist();
       getch();
       exit;
     }
@@ -1022,7 +1046,7 @@ int main(void)
   	for(frequencia=freqInicial;frequencia<=freqFinal;frequencia+=passo){
   		  montaEstampaAC();
   		  resolversistemaAC();
-			printf("SoluÁ„o com f= %e\n",frequencia);
+			printf("Solu√ß√£o com f= %e\n",frequencia);
 			strcpy(txt,"Tensao");
 			for (i=1; i<=nv; i++) {
     			if (i==nn+1) strcpy(txt,"Corrente");
@@ -1037,7 +1061,7 @@ int main(void)
   	for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(10,passo)){
   		  montaEstampaAC();
   		  resolversistemaAC();	
-			printf("SoluÁ„o com f= %e\n",frequencia);
+			printf("Solu√ß√£o com f= %e\n",frequencia);
 			strcpy(txt,"Tensao");
 			for (i=1; i<=nv; i++) {
     			if (i==nn+1) strcpy(txt,"Corrente");
@@ -1052,7 +1076,7 @@ int main(void)
   	for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(2,passo)){
   		  montaEstampaAC();
   		  resolversistemaAC();
-  		  printf("SoluÁ„o com f= %e\n",frequencia);
+  		  printf("Solu√ß√£o com f= %e\n",frequencia);
   		  	strcpy(txt,"Tensao");
 			for (i=1; i<=nv; i++) {
     			if (i==nn+1) strcpy(txt,"Corrente");
