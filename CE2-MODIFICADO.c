@@ -92,7 +92,7 @@ int
   ne, /* Elementos */
   nv, /* Variaveis */
   nn, /* Nos */
-  i,j,k, indice,
+  i,j,k, indice,n,
   inc_L, inc_C, tensaoMOS[MAX_ELEM][4],/*tensaoMOS[]: vínculo entre nó e tensão (não confundir com valor de tensão!)*/
   ne_extra,linear;
   
@@ -102,7 +102,7 @@ int   contador =1,tem, convergencia[MAX_ELEM][4];
 char
 /* Foram colocados limites nos formatos de leitura para alguma protecao
    contra excesso de caracteres nestas variaveis */
-  nomearquivo[MAX_LINHA+1],
+  nomearquivo[MAX_LINHA+1],novonome[MAX_LINHA+1],
   tipo,escala[3],
   na[MAX_NOME],nb[MAX_NOME],nc[MAX_NOME],nd[MAX_NOME],
   lista[MAX_NOS+1][MAX_NOME+2], /*Tem que caber jx antes do nome */
@@ -140,7 +140,13 @@ double cosd (double ang)
     return cos( (ang / 180.0) * PI );
 }
 
-
+void trocaNome(){ //rotina que troca extensao de .net para .tab
+	do {n++;} while(nomearquivo[n]!='.');
+	memcpy(novonome, &nomearquivo[0],n);
+    novonome[n]='\0';
+	strcpy(novonome,strcat(novonome,".tab"));
+	printf("\nResultados escritos no arquivo %s",novonome);
+}
 
 void verMOSCond(void){
  //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
@@ -1036,55 +1042,102 @@ int main(void)
   
   if(tem==1){
 	printf("\nAnalise de Resposta em Frequencia:\n");
-  for (i=0; i<=nv; i++) {
+	
+	
+	
+	for (i=0; i<=nv; i++) {
       for (j=0; j<=nv+1; j++)
         YnComplex[i][j]=0.0 + 0.0*I;
     }
+
+   
+    trocaNome();
   
   if(strcmp(escala,"LIN")==0){
-  	passo=(freqFinal-freqInicial)/(pontos-1);
-  	for(frequencia=freqInicial;frequencia<=freqFinal;frequencia+=passo){
-  		  montaEstampaAC();
-  		  resolversistemaAC();
-			printf("Solução com f= %e\n",frequencia);
-			strcpy(txt,"Tensao");
+  	
+	passo=(freqFinal-freqInicial)/(pontos-1);
+  	
+	arquivo = fopen(novonome, "w");
+	fprintf(arquivo,"f ");
+	for (i=0; i<=nv; i++)
+		fprintf(arquivo,"%sm %sf ",lista[i],lista[i]);
+	fprintf(arquivo,"\n");
+	
+	if(arquivo == NULL)
+		printf("Erro, nao foi possivel abrir o arquivo\n");
+	else{
+		
+  		for(frequencia=freqInicial;frequencia<=freqFinal;frequencia+=passo){
+  		  	montaEstampaAC();
+  		  	resolversistemaAC();
+
+			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			if (i==nn+1) strcpy(txt,"Corrente");
-    			printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
-    		
-  			}
-			  	getch();					
-	  }
-  	}
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+  			}	
+			fprintf(arquivo,"\n");  				
+	  	}
+	  	
+	}
+	fclose(arquivo);
+	getch();
+  }
   else if (strcmp(escala,"DEC")==0){
   	passo=1/(pontos-1);
-  	for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(10,passo)){
-  		  montaEstampaAC();
-  		  resolversistemaAC();	
-			printf("Solução com f= %e\n",frequencia);
-			strcpy(txt,"Tensao");
+  	
+  	arquivo = fopen(novonome, "w");
+  	fprintf(arquivo,"f ");
+	for (i=0; i<=nv; i++)
+		fprintf(arquivo,"%sm %sf ",lista[i],lista[i]);
+	fprintf(arquivo,"\n");
+  	
+	if(arquivo == NULL)
+		printf("Erro, nao foi possivel abrir o arquivo\n");
+    else{
+		
+  		for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(10,passo)){
+  		  	montaEstampaAC();
+  		  	resolversistemaAC();
+			
+			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			if (i==nn+1) strcpy(txt,"Corrente");
-    			printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
-    		}
-				getch();				
-	  }
-  	}
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+  			}	
+			fprintf(arquivo,"\n");  			
+	  	}
+	  	
+    }
+	fclose(arquivo);
+	getch();
+  }
   	  
    else if (strcmp(escala,"OCT")==0){
   		passo=1/(pontos-1);
-  	for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(2,passo)){
-  		  montaEstampaAC();
-  		  resolversistemaAC();
-  		  printf("Solução com f= %e\n",frequencia);
-  		  	strcpy(txt,"Tensao");
-			for (i=1; i<=nv; i++) {
-    			if (i==nn+1) strcpy(txt,"Corrente");
-    			printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
-    			}
-			  	getch();					
-	  }
-	}
+  		
+  		arquivo = fopen(novonome, "w");
+  		fprintf(arquivo,"f ");
+	    for (i=1; i<=nv; i++)
+		  	fprintf(arquivo,"%sm %sf ",lista[i],lista[i]);
+	    fprintf(arquivo,"\n");
+  		
+		if(arquivo == NULL)
+			printf("Erro, nao foi possivel abrir o arquivo\n");
+    	else{
+			
+  			for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(2,passo)){
+  		  		montaEstampaAC();
+  		  		resolversistemaAC();
+
+				fprintf(arquivo,"%g ",frequencia);
+				for (i=1; i<=nv; i++) {
+    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+  				}	
+				fprintf(arquivo,"\n");  				
+	  		}
+	  	}
+		fclose(arquivo);
+		getch();
+  	}
 	
 }
 else if (tem==0){
@@ -1095,16 +1148,15 @@ else if (tem==0){
        /*if (resolversistemaAC()) {
       getch();
       exit;
-  }*/ 
+  }
   getch();
   
   strcpy(txt,"Tensao");
   for (i=1; i<=nv; i++) {
     if (i==nn+1) strcpy(txt,"Corrente");
     printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
-  }
+  }*/
   
-  getch();
   return 0;
 
 }
