@@ -111,7 +111,7 @@ char
 FILE *arquivo;
 
 double
-  g,aux,freqInicial,freqFinal,frequencia,pontos,passo,
+  g,aux,freqInicial,freqFinal,frequencia,pontos,passo,vds,vgs,vbs,vt,
   Yn[MAX_NOS+1][MAX_NOS+2];        //matriz nodal
   
 double complex 
@@ -121,8 +121,10 @@ double complex
 double sind (double ang)
 {
     double t = sin( (ang / 180.0) * PI );
-    if (fabs(t) > UM)
+    if (t > UM)
         return (1.0);
+    if (t < -UM)
+        return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
@@ -132,8 +134,10 @@ double sind (double ang)
 double cosd (double ang)
 {
     double t = cos( (ang / 180.0) * PI );
-    if (fabs(t) > UM)
+    if (t > UM)
         return (1.0);
+    if ( t < -UM)
+        return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
@@ -441,6 +445,10 @@ void montaEstampaDC(void){
 	}
 
 void montaEstampaAC(void){
+		for (i=0; i<=nv; i++) {
+      for (j=0; j<=nv+1; j++)
+        YnComplex[i][j]=0.0 + 0.0*I;
+    }
   linear = 0;
   for (i=1; i<=ne; i++) {
         tipo = netlist[i].nome[0];
@@ -477,8 +485,8 @@ void montaEstampaAC(void){
           
         }
         else if (tipo=='I') {
-            YnComplex[netlist[i].a][nv+1]-= netlist[i].modulo*cosd((PI/180.0)*netlist[i].fase) + netlist[i].modulo*sind((PI/180.0)*netlist[i].fase)*I;
-            YnComplex[netlist[i].b][nv+1]+= netlist[i].modulo*cosd((PI/180.0)*netlist[i].fase) + netlist[i].modulo*sind((PI/180.0)*netlist[i].fase)*I;
+            YnComplex[netlist[i].a][nv+1]-= netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
+            YnComplex[netlist[i].b][nv+1]+= netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
 		}
         else if (tipo=='V') {
             YnComplex[netlist[i].a][netlist[i].x]+=1;
@@ -486,7 +494,7 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].x][netlist[i].a]-=1;
             YnComplex[netlist[i].x][netlist[i].b]+=1;
             
-            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd((PI/180.0)*netlist[i].fase) + netlist[i].modulo*sind((PI/180.0)*netlist[i].fase)*I; 
+            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
 			
         
 		}
@@ -620,7 +628,7 @@ void verificaConvergencia(void)
         if (netlist[i].nome[0]=='M'){        
             for(j=0;j<=3;j++){
   
-          	if(j==0 && tensaoMOS[k][j]== netlist[i].a ){//incrementar o i, pq ele está rodando cada M do netlist
+          	if(j==0){
               mos[k].vd[1]=Yn[i][nv+1];
               if ((mos[k].vd[1] > 1) && (fabs((mos[k].vd[1]-mos[k].vd[0])/mos[k].vd[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -632,7 +640,7 @@ void verificaConvergencia(void)
               }
           }
             
-          else  if(j==1 && tensaoMOS[k][j]== netlist[i].c ){//incrementar o i, pq ele está rodando cada M do netlist
+          else  if(j==1){
               mos[k].vg[1]=Yn[i][nv+1];
               if ((mos[k].vg[1] > 1) && (fabs((mos[k].vg[1]-mos[k].vg[0])/mos[k].vg[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -644,7 +652,7 @@ void verificaConvergencia(void)
               }
           }
             
-        else  if(j==2 && tensaoMOS[k][j]== netlist[i].b ){//incrementar o i, pq ele está rodando cada M do netlist
+        else  if(j==2){
               mos[k].vs[1]=Yn[i][nv+1];
               if ((mos[k].vs[1] > 1) && (fabs((mos[k].vs[1]-mos[k].vs[0])/mos[k].vs[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -655,7 +663,7 @@ void verificaConvergencia(void)
                   mos[k].vs[0]=mos[k].vs[1];
               }
           }
-        else  if(j==3 && tensaoMOS[k][j]== netlist[i].d ){//incrementar o i, pq ele está rodando cada M do netlist
+        else  if(j==3){
               mos[k].vb[1]=Yn[i][nv+1];
               if ((mos[k].vb[1] > 1) && (fabs((mos[k].vb[1]-mos[k].vb[0])/mos[k].vb[1]) < 1e-12))
                   {convergencia[k][j] = 1;}
@@ -773,9 +781,6 @@ int numero(char *nome)
     return i; /* no ja conhecido */
   }
 }
-
-
-
 /*void clrscr() {
   #ifdef WINDOWS
   system("cls");
@@ -1044,9 +1049,7 @@ int main(void)
   inc_L=0; inc_C=0;
   
   if(tem==1){
-	printf("\nAnalise de Resposta em Frequencia:\n");
-	
-	
+	printf("\nAnalise de Resposta em Frequencia:\n");	
 	
 	for (i=0; i<=nv; i++) {
       for (j=0; j<=nv+1; j++)
@@ -1163,4 +1166,3 @@ else if (tem==0){
   return 0;
 
 }
-
