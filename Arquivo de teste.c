@@ -121,10 +121,8 @@ double complex
 double sind (double ang)
 {
     double t = sin( (ang / 180.0) * PI );
-    if (t > UM)
+    if (fabs(t) > UM)
         return (1.0);
-    if (t < -UM)
-        return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
@@ -134,10 +132,8 @@ double sind (double ang)
 double cosd (double ang)
 {
     double t = cos( (ang / 180.0) * PI );
-    if (t > UM)
+    if (fabs(t) > UM)
         return (1.0);
-    if ( t < -UM)
-        return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
@@ -156,7 +152,7 @@ void verMOSCond(void){
  //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
 	mos[linear].invertido=0;	
 	//VERIFICA INVERSAO
-		if(vds>0 && mos[linear].tipo[0]=='P' || vds<0 && mos[linear].tipo[0]=='N'){
+		if((vds>0 && mos[linear].tipo[0]=='P') || (vds<0 && mos[linear].tipo[0]=='N')){
 		mos[linear].invertido=1;
 		aux=mos[linear].vd[0];
         mos[linear].vd[0]=mos[linear].vs[0];
@@ -168,17 +164,21 @@ void verMOSCond(void){
 	vbs = mos[linear].vb[0]-mos[linear].vs[0];
 	vt=mos[linear].vt[0];
 	
-   if(vds>0){
+   if(mos[linear].tipo[0]=='N' || (mos[linear].tipo[0]=='P' && mos[linear].invertido == 1)){
       //VERIFICA INVERSAO
       //CORTE
       if(vgs<vt){       
     	mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=mos[linear].cox*mos[linear].lg*mos[linear].cp;
+        mos[linear].rgds=0;
+        mos[linear].gm=0;
+        mos[linear].gmb=0;
+        mos[linear].i0=0;
        strcmp(mos[linear].modo,"CORTE");
 	   }
         //TRIODO
-      else if(vds<=vgs-vt){         
+      else if(vds<vgs-vt && vgs>vt){         
         mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld+(mos[linear].cox*mos[linear].cp*mos[linear].lg)/2;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=0;        
@@ -191,7 +191,7 @@ void verMOSCond(void){
         strcpy(mos[linear].modo,"TRIODO");
 	  }      
       //SATURACAO
-      else{         
+      else if (vgs>vt && vds>vgs-vt){         
     	mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld+2*(mos[linear].cox*mos[linear].cp*mos[linear].lg)/3;
         mos[linear].cgd=mos[linear].cox*mos[linear].lg*mos[linear].ld;
         mos[linear].cbg=0;
@@ -204,36 +204,40 @@ void verMOSCond(void){
         strcpy(mos[linear].modo,"SATURACAO");
 	  } 
   }
-  else if(vds<0){    
+  else if(mos[linear].tipo[0]=='P' || (mos[linear].tipo[0]=='N' && mos[linear].invertido == 1)){    
     //CORTE
-      if((vgs)>mos[linear].vt[0]){        
+      if(vgs>vt){        
     	mos[linear].cgs=mos[linear].cox*mos[linear].cp*mos[linear].ld;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=mos[linear].cox*mos[linear].cp*mos[linear].lg;
+        mos[linear].rgds=0;
+        mos[linear].gm=0;
+        mos[linear].gmb=0;
+        mos[linear].i0=0;
         strcpy(mos[linear].modo,"CORTE");
       }
         //TRIODO
-      else if(vds>=vgs-vt){        
+      else if(vds>vgs-vt && vgs<vt ){        
         mos[linear].cgs=mos[linear].cox*mos[linear].cp*mos[linear].ld+(mos[linear].cox*mos[linear].cp*mos[linear].lg)/2;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=0;
         mos[linear].rgds = ((mos[linear].transK)*(mos[linear].cp/mos[linear].lg)*(2*(-vgs+vt)+2*vds-4*mos[linear].lambda*(-vgs+vt)*vds-3*mos[linear].lambda*vds*vds));
         mos[linear].gm  = ((mos[linear].transK)*(mos[linear].cp/mos[linear].lg)*(2*(-vds)*(1-mos[linear].lambda*vds)));
         mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(sqrt(fabs(mos[linear].phi+vbs)));
-        mos[linear].ids = -((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(vt-vgs)*(-vds)-(vds*vds))*(1-vds*mos[linear].lambda));
-        //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
+        mos[linear].ids = -((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(vgs-vt)*(vds)-(vds*vds))*(1+mos[linear].lambda));
+		//I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
         mos[linear].i0 = mos[linear].ids - mos[linear].gm*vgs - mos[linear].gmb*vbs - mos[linear].rgds*vds;
         strcpy(mos[linear].modo,"TRIODO");
 	  }
       //SATURACAO
-      else{//if(vds<(vgs-vt)){          
+      else if(vds<vgs-vt && vgs<vt){          
         mos[linear].cgs=mos[linear].cox*mos[linear].cp*mos[linear].ld+2*(mos[linear].cox*mos[linear].cp*mos[linear].lg)/3;
         mos[linear].cgd=mos[linear].cox*mos[linear].cp*mos[linear].ld;
         mos[linear].cbg=0;    
         mos[linear].rgds = ((mos[linear].transK)*(mos[linear].cp/mos[linear].lg)*(vgs-vt)*(vgs-vt)*mos[linear].lambda);
         mos[linear].gm = ((mos[linear].transK)*(mos[linear].cp/mos[linear].lg)*(2*(-vgs+vt)*(1-mos[linear].lambda*vds)));
 		mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(sqrt(fabs(mos[linear].phi+vbs)));
-        mos[linear].ids = -(mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(vgs-vt)*(vgs-vt)*(1-mos[linear].lambda*vds);
+        mos[linear].ids = -(mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(vgs-vt)*(vgs-vt)*(1+mos[linear].lambda*vds);
      	//I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
         mos[linear].i0 = mos[linear].ids - mos[linear].gm*vgs - mos[linear].gmb*vbs - mos[linear].rgds*vds;
         strcpy(mos[linear].modo,"SATURACAO");
@@ -269,6 +273,7 @@ void mostraNetlist(void){
       printf("Correntes jx e jy: %d, %d\n",netlist[i].x,netlist[i].y);
   }
 }
+
 
 void montaEstampaDC(void){
 	for (i=1; i<=ne; i++) {
@@ -346,10 +351,7 @@ void montaEstampaDC(void){
         }
       else if (tipo=='M') {
         linear++;
-        mos[linear].rgds=0;
-        mos[linear].gm=0;
-        mos[linear].gmb=0;
-        mos[linear].i0=0;
+        
         if(contador>1){ //entra aqui apenas a partir da segunda iteração do Newton-Raphson
          for(j=0;j<=3;j++){
                 if(j==0){                     
@@ -378,6 +380,7 @@ void montaEstampaDC(void){
                 }
           }
           
+      }
             if (fabs(mos[linear].vb[0]-mos[linear].vs[0])>(mos[i].phi)/2){
               mos[linear].vt[0]=mos[i].vt0+mos[i].gama*(sqrt((mos[i].phi)/2)-sqrt(mos[i].phi));
             }
@@ -385,7 +388,7 @@ void montaEstampaDC(void){
             mos[linear].vt[0]=mos[i].vt0+mos[i].gama*(sqrt(mos[i].phi-(mos[linear].vb[0]-mos[linear].vs[0]))-sqrt(mos[i].phi));
             }
             verMOSCond();            
-        }
+    
         //invertido?
         netlist[i].invertido = mos[linear].invertido;
         strcpy(netlist[i].modo,mos[linear].modo);
@@ -445,7 +448,7 @@ void montaEstampaDC(void){
 	}
 
 void montaEstampaAC(void){
-		for (i=0; i<=nv; i++) {
+		for (i=0; i<=nv+1; i++) {
       for (j=0; j<=nv+1; j++)
         YnComplex[i][j]=0.0 + 0.0*I;
     }
@@ -461,7 +464,8 @@ void montaEstampaAC(void){
         }
         else if (tipo=='C' ) {//estampa do capacitor (resp em freq)
           inc_C++;      
-          gComplex=2*(double)PI*frequencia*cap_C[inc_C]*I;
+          netlist[i].valor=cap_C[inc_C];
+          gComplex=2*PI*frequencia*cap_C[inc_C]*I;
           YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
           YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
           YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
@@ -469,7 +473,8 @@ void montaEstampaAC(void){
         }
         else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
           inc_L++;
-          gComplex=2*(double)PI*frequencia*ind_L[inc_L]*I;
+          netlist[i].valor= ind_L[inc_L];
+          gComplex=2*PI*frequencia*ind_L[inc_L]*I;
           YnComplex[netlist[i].a][netlist[i].x]+=1;
           YnComplex[netlist[i].b][netlist[i].x]-=1;
           YnComplex[netlist[i].x][netlist[i].a]-=1;
@@ -883,7 +888,6 @@ int main(void)
       srand(time(NULL));
       linear++;
       sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[linear].tipo,comprimento,largura,&mos[linear].transK,&mos[linear].vt0,&mos[linear].lambda,&mos[linear].gama,&mos[linear].phi,&mos[linear].ld);
-      strcpy(mos[linear].modo,"CORTE");
       if (mos[linear].tipo[0]=='N')
       	mos[linear].cox=(2*mos[linear].transK)/0.05;
       else if (mos[linear].tipo[0]=='P')
@@ -1084,10 +1088,18 @@ int main(void)
   		for(frequencia=freqInicial;frequencia<=freqFinal;frequencia+=passo){
   		  	montaEstampaAC();
   		  	resolversistemaAC();
+  		  	printf("freq= %e\n",frequencia);
+  		  	 strcpy(txt,"Tensao");
+  for (i=1; i<=nv; i++) {
+    if (i==nn+1) strcpy(txt,"Corrente");
+    printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+  }
+   getch();
+  
 
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),(180/PI)*carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  				
 	  	}
@@ -1113,10 +1125,18 @@ int main(void)
   		  	
 			montaEstampaAC();
   		  	resolversistemaAC();
+  		  	  		  	printf("freq= %e\n",frequencia);
+  		  	 strcpy(txt,"Tensao");
+  for (i=1; i<=nv; i++) {
+    if (i==nn+1) strcpy(txt,"Corrente");
+    printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+  }
+   getch();
+  
 			
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),(180/PI)*carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  			
 	  	}
@@ -1142,10 +1162,18 @@ int main(void)
   			for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(2,passo)){
   		  		montaEstampaAC();
   		  		resolversistemaAC();
+  		  		  		  	printf("freq= %e\n",frequencia);
+  		  		 strcpy(txt,"Tensao");
+  for (i=1; i<=nv; i++) {
+    if (i==nn+1) strcpy(txt,"Corrente");
+    printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+  }
+   getch();
+  
 
 				fprintf(arquivo,"%g ",frequencia);
 				for (i=1; i<=nv; i++) {
-    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
+    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),(180/PI)*carg(YnComplex[i][nv+1]));
   				}	
 				fprintf(arquivo,"\n");  				
 	  		}
@@ -1163,14 +1191,15 @@ else if (tem==0){
        /*if (resolversistemaAC()) {
       getch();
       exit;
-  }
+  }*/
   getch();
   
   strcpy(txt,"Tensao");
   for (i=1; i<=nv; i++) {
     if (i==nn+1) strcpy(txt,"Corrente");
     printf("%s %s: %g + %gi \n",txt,lista[i],creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
-  }*/
+  }
+   getch();
   
   return 0;
 
