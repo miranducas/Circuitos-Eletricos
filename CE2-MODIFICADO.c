@@ -469,7 +469,7 @@ void montaEstampaAC(void){
         }
         else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
           inc_L++;
-          gComplex=2*PI*frequencia*ind_L[inc_L]*I;printf("\nInd: %g",ind_L[inc_L]);
+          gComplex=2*PI*frequencia*ind_L[inc_L]*I;//printf("\nInd: %g",ind_L[inc_L]);
           YnComplex[netlist[i].a][netlist[i].x]+=1;
           YnComplex[netlist[i].b][netlist[i].x]-=1;
           YnComplex[netlist[i].x][netlist[i].a]-=1;
