@@ -1002,6 +1002,7 @@ int main(void)
       getch();
       exit;
     }
+    if(linear!=0){	
     verificaConvergencia(); 
     contador++;
     for (i = 1; (i <=linear)&&(i != -1);){
@@ -1011,7 +1012,9 @@ int main(void)
   		}
     }  
     if (i==linear){fim = 1;}
-    if (contador==10000){fim =1;}    
+    if (contador==10000){fim =1;} 
+	}
+	else if(linear ==0){fim=1;}
   }//fim do while
   
   
