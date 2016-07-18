@@ -461,7 +461,7 @@ void montaEstampaAC(void){
         }
         else if (tipo=='C' ) {//estampa do capacitor (resp em freq)
           inc_C++;      
-          gComplex=2*(double)PI*frequencia*cap_C[inc_C]*I;
+          gComplex=2*PI*frequencia*cap_C[inc_C]*I;
           YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
           YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
           YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
@@ -469,7 +469,7 @@ void montaEstampaAC(void){
         }
         else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
           inc_L++;
-          gComplex=2*(double)PI*frequencia*ind_L[inc_L]*I;
+          gComplex=2*PI*frequencia*ind_L[inc_L]*I;printf("\nInd: %g",ind_L[inc_L]);
           YnComplex[netlist[i].a][netlist[i].x]+=1;
           YnComplex[netlist[i].b][netlist[i].x]-=1;
           YnComplex[netlist[i].x][netlist[i].a]-=1;
@@ -1046,7 +1046,7 @@ int main(void)
   
   
   //RESPOSTA EM FREQUENCIA 
-  inc_L=0; inc_C=0;
+  
   
   if(tem==1){
 	printf("\nAnalise de Resposta em Frequencia:\n");	
@@ -1073,8 +1073,10 @@ int main(void)
 	else{
 		
   		for(frequencia=freqInicial;frequencia<=freqFinal;frequencia+=passo){
-  		  	montaEstampaAC();
-  		  	resolversistemaAC();
+  		  		inc_L=0; inc_C=0;
+  		  		linear=0;
+				montaEstampaAC();
+  		  		resolversistemaAC();
 
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
@@ -1101,12 +1103,14 @@ int main(void)
     else{
 		
   		for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(10,passo)){
-  		  	
+  		  	inc_L=0; inc_C=0;
+  		  	linear=0;
 			montaEstampaAC();
   		  	resolversistemaAC();
 			
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
+				//	printf("\n%g + %gj: ",creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
     			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  			
@@ -1131,7 +1135,9 @@ int main(void)
     	else{
 			
   			for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(2,passo)){
-  		  		montaEstampaAC();
+  		  		inc_L=0; inc_C=0;
+  		  		linear=0;
+				montaEstampaAC();
   		  		resolversistemaAC();
 
 				fprintf(arquivo,"%g ",frequencia);
