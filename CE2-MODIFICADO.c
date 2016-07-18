@@ -53,7 +53,7 @@ Os nos podem ser nomes
 #define MAX_NOME 11
 #define MAX_ELEM 500
 #define MAX_NOS 50
-#define TOLG 1e-50
+#define TOLG 1e-15
 #define PI 3.14159265358979
 #define UM 0.999999999999999999999999999999999999999999 //utilizado para tratar os erros numericos no seno e cosseno
 #define ZERO 0.0000000000000000000000000000000000000001 //utilizado para tratar os erros numericos no seno e cosseno
@@ -121,10 +121,10 @@ double complex
 double sind (double ang)
 {
     double t = sin( (ang / 180.0) * PI );
-    if (t > UM)
+    if (fabs(t) > UM)
         return (1.0);
-    if (t < -UM)
-        return (-1.0);
+    //if (t < -UM)
+        //return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
@@ -134,10 +134,10 @@ double sind (double ang)
 double cosd (double ang)
 {
     double t = cos( (ang / 180.0) * PI );
-    if (t > UM)
+    if (fabs(t) > UM)
         return (1.0);
-    if ( t < -UM)
-        return (-1.0);
+    //if ( t < -UM)
+       // return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
