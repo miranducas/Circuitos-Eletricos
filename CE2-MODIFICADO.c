@@ -477,8 +477,8 @@ void montaEstampaAC(void){
           
         }
         else if (tipo=='I') {
-            YnComplex[netlist[i].a][nv+1]-= netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
-            YnComplex[netlist[i].b][nv+1]+= netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
+            YnComplex[netlist[i].a][nv+1]-= netlist[i].modulo*cosd((PI/180.0)*netlist[i].fase) + netlist[i].modulo*sind((PI/180.0)*netlist[i].fase)*I;
+            YnComplex[netlist[i].b][nv+1]+= netlist[i].modulo*cosd((PI/180.0)*netlist[i].fase) + netlist[i].modulo*sind((PI/180.0)*netlist[i].fase)*I;
 		}
         else if (tipo=='V') {
             YnComplex[netlist[i].a][netlist[i].x]+=1;
@@ -486,7 +486,7 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].x][netlist[i].a]-=1;
             YnComplex[netlist[i].x][netlist[i].b]+=1;
             
-            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I; 
+            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd((PI/180.0)*netlist[i].fase) + netlist[i].modulo*sind((PI/180.0)*netlist[i].fase)*I; 
 			
         
 		}
@@ -1061,7 +1061,7 @@ int main(void)
   	
 	arquivo = fopen(novonome, "w");
 	fprintf(arquivo,"f ");
-	for (i=0; i<=nv; i++)
+	for (i=1; i<=nv; i++)
 		fprintf(arquivo,"%sm %sf ",lista[i],lista[i]);
 	fprintf(arquivo,"\n");
 	
@@ -1075,10 +1075,7 @@ int main(void)
 
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			if(creal(YnComplex[i][nv+1])==0.0)
-					fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),90.0);
-				else
-    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  				
 	  	}
@@ -1092,7 +1089,7 @@ int main(void)
   	
   	arquivo = fopen(novonome, "w");
   	fprintf(arquivo,"f ");
-	for (i=0; i<=nv; i++)
+	for (i=1; i<=nv; i++)
 		fprintf(arquivo,"%sm %sf ",lista[i],lista[i]);
 	fprintf(arquivo,"\n");
   	
@@ -1107,11 +1104,7 @@ int main(void)
 			
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-				//printf("\nsolucao:%g ",cimag(YnComplex[i][nv+1]));
-				if(creal(YnComplex[i][nv+1])==0.0)
-					fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),90.0);
-				else
-    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  			
 	  	}
@@ -1140,10 +1133,7 @@ int main(void)
 
 				fprintf(arquivo,"%g ",frequencia);
 				for (i=1; i<=nv; i++) {
-    				if(creal(YnComplex[i][nv+1])==0.0)
-						fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),90.0);
-					else
-    					fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
   				}	
 				fprintf(arquivo,"\n");  				
 	  		}
