@@ -469,7 +469,7 @@ void montaEstampaAC(void){
         }
         else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
           inc_L++;
-          gComplex=2*PI*frequencia*ind_L[inc_L]*I;//printf("\nInd: %g",ind_L[inc_L]);
+          gComplex=2*PI*frequencia*ind_L[inc_L]*I;
           YnComplex[netlist[i].a][netlist[i].x]+=1;
           YnComplex[netlist[i].b][netlist[i].x]-=1;
           YnComplex[netlist[i].x][netlist[i].a]-=1;
@@ -592,11 +592,11 @@ void montaEstampaAC(void){
         for (indice = 1; indice <= ne && fim != 2; indice++){
             if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
                 fim++;
-                valorLA = netlist[i].valor;
+                valorLA = ind_L[indice];
             }
             else if(strcmp(acop_K[i].lB, netlist[indice].nome) == 0){
                 fim++;
-                valorLB = netlist[i].valor;
+                valorLB = ind_L[indice];
             }
         }
 
@@ -1110,7 +1110,7 @@ int main(void)
 			
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-				//	printf("\n%g + %gj: ",creal(YnComplex[i][nv+1]),cimag(YnComplex[i][nv+1]));
+				
     			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  			
