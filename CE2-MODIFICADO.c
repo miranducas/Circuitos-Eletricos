@@ -1080,7 +1080,7 @@ int main(void)
 
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),(180/PI)*carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  				
 	  	}
@@ -1111,7 +1111,7 @@ int main(void)
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
 				
-    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
+    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),(180/PI)*carg(YnComplex[i][nv+1]));
   			}	
 			fprintf(arquivo,"\n");  			
 	  	}
@@ -1142,7 +1142,7 @@ int main(void)
 
 				fprintf(arquivo,"%g ",frequencia);
 				for (i=1; i<=nv; i++) {
-    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),carg(YnComplex[i][nv+1]));
+    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),(180/PI)*carg(YnComplex[i][nv+1]));
   				}	
 				fprintf(arquivo,"\n");  				
 	  		}
