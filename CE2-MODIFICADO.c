@@ -53,7 +53,7 @@ Os nos podem ser nomes
 #define MAX_NOME 11
 #define MAX_ELEM 500
 #define MAX_NOS 50
-#define TOLG 1e-30
+#define TOLG 1e-50
 #define PI 3.14159265358979
 #define UM 0.999999999999999999999999999999999999999999 //utilizado para tratar os erros numericos no seno e cosseno
 #define ZERO 0.0000000000000000000000000000000000000001 //utilizado para tratar os erros numericos no seno e cosseno
@@ -461,7 +461,7 @@ void montaEstampaAC(void){
         }
         else if (tipo=='L'){//estampa do indutor controlado a corrente (resp em freq)
           inc_L++;
-          gComplex=2*(double)PI*frequencia*ind_L[inc_L]*I;//printf("\n gcomplexo do indutor eh: %e + i%e \n",creal(gComplex),cimag(gComplex));
+          gComplex=2*(double)PI*frequencia*ind_L[inc_L]*I;
           YnComplex[netlist[i].a][netlist[i].x]+=1;
           YnComplex[netlist[i].b][netlist[i].x]-=1;
           YnComplex[netlist[i].x][netlist[i].a]-=1;
@@ -477,15 +477,18 @@ void montaEstampaAC(void){
           
         }
         else if (tipo=='I') {
-            YnComplex[netlist[i].a][nv+1]-= netlist[i].modulo*cosd(netlist[i].fase) + I*netlist[i].modulo*sind(netlist[i].fase);
-            YnComplex[netlist[i].b][nv+1]+= netlist[i].modulo*cosd(netlist[i].fase) + I*netlist[i].modulo*sind(netlist[i].fase);
+            YnComplex[netlist[i].a][nv+1]-= netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
+            YnComplex[netlist[i].b][nv+1]+= netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
 		}
         else if (tipo=='V') {
             YnComplex[netlist[i].a][netlist[i].x]+=1;
             YnComplex[netlist[i].b][netlist[i].x]-=1;
             YnComplex[netlist[i].x][netlist[i].a]-=1;
             YnComplex[netlist[i].x][netlist[i].b]+=1;
-            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd(netlist[i].fase) + I*netlist[i].modulo*sind(netlist[i].fase); 
+            
+            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I; 
+			
+        
 		}
         else if (tipo=='E') {
           g=netlist[i].valor;
@@ -1049,7 +1052,6 @@ int main(void)
       for (j=0; j<=nv+1; j++)
         YnComplex[i][j]=0.0 + 0.0*I;
     }
-
    
     trocaNome();
   
@@ -1073,7 +1075,10 @@ int main(void)
 
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+    			if(creal(YnComplex[i][nv+1])==0.0)
+					fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),90.0);
+				else
+    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
   			}	
 			fprintf(arquivo,"\n");  				
 	  	}
@@ -1096,12 +1101,17 @@ int main(void)
     else{
 		
   		for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(10,passo)){
-  		  	montaEstampaAC();
+  		  	
+			montaEstampaAC();
   		  	resolversistemaAC();
 			
 			fprintf(arquivo,"%g ",frequencia);
 			for (i=1; i<=nv; i++) {
-    			fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+				//printf("\nsolucao:%g ",cimag(YnComplex[i][nv+1]));
+				if(creal(YnComplex[i][nv+1])==0.0)
+					fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),90.0);
+				else
+    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
   			}	
 			fprintf(arquivo,"\n");  			
 	  	}
@@ -1130,7 +1140,10 @@ int main(void)
 
 				fprintf(arquivo,"%g ",frequencia);
 				for (i=1; i<=nv; i++) {
-    				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
+    				if(creal(YnComplex[i][nv+1])==0.0)
+						fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),90.0);
+					else
+    					fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),atan(cimag(YnComplex[i][nv+1])/creal(YnComplex[i][nv+1])));
   				}	
 				fprintf(arquivo,"\n");  				
 	  		}
