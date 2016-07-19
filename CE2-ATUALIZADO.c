@@ -569,32 +569,21 @@ void montaEstampaAC(void){
             if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
                 fim++;
                 valorLA = ind_L[indice];
+                L1=indice;
             }
             else if(strcmp(acop_K[i].lB, netlist[indice].nome) == 0){
                 fim++;
                 valorLB = ind_L[indice];
+                L2=indice;
             }
         }
-		//netlist com INDICES ERRADOS!!!!! TIPO K não possui netlist.k, netlist.b .a .c .d etc
         ind_M = netlist[i].valor*(sqrt(valorLA*valorLB));      
-        YnComplex[netlist[i].a][netlist[i].x]+=1;
-        YnComplex[netlist[i].b][netlist[i].x]-=1;
-        YnComplex[netlist[i].c][netlist[i].y]+=1;
-        YnComplex[netlist[i].d][netlist[i].y]-=1;
-        YnComplex[netlist[i].x][netlist[i].a]-=1;
-        YnComplex[netlist[i].x][netlist[i].b]+=1;
-        YnComplex[netlist[i].y][netlist[i].c]-=1;
-        YnComplex[netlist[i].y][netlist[i].d]+=1;
-        YnComplex[netlist[i].x][netlist[i].x]+=2*PI*frequencia*valorLA*I;
-        YnComplex[netlist[i].x][netlist[i].y]+=2*PI*frequencia*ind_M*I;
-        YnComplex[netlist[i].y][netlist[i].x]+=2*PI*frequencia*ind_M*I;
-        YnComplex[netlist[i].y][netlist[i].y]+=2*PI*frequencia*valorLB*I;
-  		YnComplex[netlist[i].x][nv+1] += valorLA*varAtual[netlist[i].x] + ind_M*varAtual[netlist[i].y];
-        YnComplex[netlist[i].y][nv+1] += ind_M*varAtual[netlist[i].x] + valorLB*varAtual[netlist[i].y];
-
-    }
-    
-  }
+        YnComplex[netlist[L1].x][netlist[L2].x]+=2*PI*frequencia*ind_M*I;
+        YnComplex[netlist[L2].x][netlist[L1].x]+=2*PI*frequencia*ind_M*I;
+        YnComplex[netlist[L1].x][nv+1] += valorLA*varAtual[netlist[L1].x] + ind_M*varAtual[netlist[L2].x];
+        YnComplex[netlist[L2].x][nv+1] += ind_M*varAtual[netlist[L1].x] + valorLB*varAtual[netlist[L2].x];
+		}
+   	  }
 }
 
 void verificaConvergencia(void)
