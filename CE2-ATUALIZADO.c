@@ -190,7 +190,7 @@ void verMOSCond(void){
         mos[linear].gm=0;
         mos[linear].gmb=0;
         mos[linear].i0=0;
-       strcmp(mos[linear].modo,"CORTE");
+       strcpy(mos[linear].modo,"CORTE");
 	   }
         //TRIODO
       else if(vds<vgs-vt){         
