@@ -84,7 +84,7 @@ acoplamento acop_K[MAX_ELEM];
 typedef struct transitorMOS {
    char tipo[MAX_NOME],modo[MAX_NOME];
    double cp,lg,transK,vt0,lambda,gama,phi,ld,cox,
-   		  vt[2],vgs[2],vds[2],vbs[2],
+   		  vt,vgs,vds,vbs,
           cgs,cgd,cbg,
 		  rgds,gm,gmb,ids,i0;
    int invertido,pmos;
@@ -162,7 +162,7 @@ void trocaNome(){ //rotina que troca extensao de .net para .tab
 void verMOSCond(void){
  //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
 		 //CORTE
-      if(mos[linear].vgs[0]<mos[linear].vt[0] && mos[linear].vds>0){       
+      if(mos[linear].vgs<mos[linear].vt && mos[linear].vds>0){       
     	mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=mos[linear].cox*mos[linear].lg*mos[linear].cp;
@@ -173,16 +173,16 @@ void verMOSCond(void){
        strcpy(mos[linear].modo,"CORTE");
 	   }
         //TRIODO
-      else if((mos[linear].vds[0]<mos[linear].vgs[0]-mos[linear].vt[0])){ //&& mos[linear].tipo[0]=='N')||((mos[linear].vds[0]>mos[linear].vgs[0]-mos[linear].vt[0])&& mos[linear].tipo[0]=='P')) {         
+      else if((mos[linear].vds<mos[linear].vgs-mos[linear].vt)){ //&& mos[linear].tipo[0]=='N')||((mos[linear].vds>mos[linear].vgs-mos[linear].vt)&& mos[linear].tipo[0]=='P')) {         
         mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld+(mos[linear].cox*mos[linear].cp*mos[linear].lg)/2;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=0;        
-        mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs[0]-mos[linear].vt[0])-2*mos[linear].vds[0]+4*mos[linear].lambda*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vds[0])-3*mos[linear].lambda*(mos[linear].vds[0])*(mos[linear].vds[0])));
-        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vds[0])*(1+mos[linear].lambda*(mos[linear].vds[0]))));
-    	mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-mos[linear].vbs[0])));       
-        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vds[0])-(mos[linear].vds[0]*mos[linear].vds[0]))*(1+mos[linear].lambda*mos[linear].vds[0]);
-        //I0 = id - Gm*mos[linear].vgs[0] - Gmb*mos[linear].vbs[0] - Gds*mos[linear].vds[0]
-        mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs[0] - mos[linear].gmb*mos[linear].vbs[0] - mos[linear].rgds*mos[linear].vds[0];
+        mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs-mos[linear].vt)-2*mos[linear].vds+4*mos[linear].lambda*(mos[linear].vgs-mos[linear].vt)*(mos[linear].vds)-3*mos[linear].lambda*(mos[linear].vds)*(mos[linear].vds)));
+        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vds)*(1+mos[linear].lambda*(mos[linear].vds))));
+    	mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-mos[linear].vbs)));       
+        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs-mos[linear].vt)*(mos[linear].vds)-(mos[linear].vds*mos[linear].vds))*(1+mos[linear].lambda*mos[linear].vds);
+        //I0 = id - Gm*mos[linear].vgs - Gmb*mos[linear].vbs - Gds*mos[linear].vds
+        mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs - mos[linear].gmb*mos[linear].vbs - mos[linear].rgds*mos[linear].vds;
         strcpy(mos[linear].modo,"TRIODO");
 	  }      
       //SATURACAO
@@ -190,12 +190,12 @@ void verMOSCond(void){
     	mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld+2*(mos[linear].cox*mos[linear].cp*mos[linear].lg)/3;
         mos[linear].cgd=mos[linear].cox*mos[linear].lg*mos[linear].ld;
         mos[linear].cbg=0;
-    	mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vgs[0]-mos[linear].vt[0])*mos[linear].lambda);
-        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs[0]-mos[linear].vt[0])*(1+mos[linear].lambda*mos[linear].vds[0])));
-        mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-mos[linear].vbs[0]))); 
-        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vgs[0]-mos[linear].vt[0])*(1+mos[linear].lambda*mos[linear].vds[0]);
-     	//I0 = id - Gm*mos[linear].vgs[0] - Gmb*mos[linear].vbs[0] - Gds*mos[linear].vds[0]
-        mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs[0] - mos[linear].gmb*mos[linear].vbs[0] - mos[linear].rgds*mos[linear].vds[0];
+    	mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(mos[linear].vgs-mos[linear].vt)*(mos[linear].vgs-mos[linear].vt)*mos[linear].lambda);
+        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs-mos[linear].vt)*(1+mos[linear].lambda*mos[linear].vds)));
+        mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-mos[linear].vbs))); 
+        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(mos[linear].vgs-mos[linear].vt)*(mos[linear].vgs-mos[linear].vt)*(1+mos[linear].lambda*mos[linear].vds);
+     	//I0 = id - Gm*mos[linear].vgs - Gmb*mos[linear].vbs - Gds*mos[linear].vds
+        mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs - mos[linear].gmb*mos[linear].vbs - mos[linear].rgds*mos[linear].vds;
         strcpy(mos[linear].modo,"SATURACAO");
 	  } 
 		if (mos[linear].tipo[0]=='N'){
@@ -230,7 +230,7 @@ void mostraNetlist(void){
   		linear++;
       printf("\n%s %s %d %d MODO: %s INVERTIDO=%d  I0 =%e Vds=%e Vgs=%e Vbs=%e Ids=%e \nGds=%e Gm=%e Gmb=%e Cgd=%e Cbg=%e Cgs=%e\n",netlist[i].nome,
 	  netlist[i].tipo,netlist[i].a,netlist[i].b,netlist[i].modo,netlist[i].invertido,netlist[i].i0,
-	  mos[linear].vds[0],mos[linear].vgs[0], mos[linear].vbs[0],netlist[i].ids,
+	  mos[linear].vds,mos[linear].vgs, mos[linear].vbs,netlist[i].ids,
 	  netlist[i].rgds,netlist[i].gm,netlist[i].gmb,netlist[i].cgd,netlist[i].cbg,netlist[i].cgs);
   }
       if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L')
@@ -319,59 +319,39 @@ void montaEstampaDC(void){
           Yn[netlist[i].x][netlist[i].d]-=1;
         }
       else if (tipo=='M') {
-	          linear++;
-			  /*
-			  mos[linear].vd[0]=varAtual[netlist[i].a];
-			  mos[linear].vd[1]=varProx[netlist[i].a];
-			  mos[linear].vg[0]=varAtual[netlist[i].c];
-			  mos[linear].vg[1]=varProx[netlist[i].c]; 
-			  mos[linear].vs[0]=varAtual[netlist[i].b];
-			  mos[linear].vs[1]=varProx[netlist[i].b];
-		      mos[linear].vb[0]=varAtual[netlist[i].d];
-			  mos[linear].vb[1]=varProx[netlist[i].d];
-		      mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-(mos[linear].vb[0]-mos[linear].vs[0]))-sqrt(mos[linear].phi));  
-			  mos[linear].vt[1]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-(mos[linear].vb[1]-mos[linear].vs[1]))-sqrt(mos[linear].phi)); 
-			  */
-			  
+	          linear++;			  
 			  mos[linear].gm=0;
 			  mos[linear].gmb=0;
 			  mos[linear].rgds=0;
-			  mos[linear].i0=0;			 
-			  mos[linear].vds[0]= varAtual[netlist[i].a] - varAtual[netlist[i].b]; 	
-			  
-			 		  
+			  mos[linear].i0=0;				  
+			  mos[linear].vds= varAtual[netlist[i].a]-varAtual[netlist[i].b]; 			  
+			  			 		  
 			  //VERIFICA INVERSAO
-			  if((mos[linear].vds[0]>0 && mos[linear].tipo[0]=='P') || (mos[linear].vds[0]<0 && mos[linear].tipo[0]=='N')){
+			  if((mos[linear].vds>0 && mos[linear].tipo[0]=='P')||(mos[linear].vds<0 && mos[linear].tipo[0]=='N')){
 					mos[linear].invertido=1;
 					aux= netlist[i].a;
 					netlist[i].a = netlist[i].b;
 					netlist[i].b = aux;
 					}
-				else if ((mos[linear].vds[0]<0 && mos[linear].tipo[0]=='P') || (mos[linear].vds[0]>0 && mos[linear].tipo[0]=='N')){
-					mos[linear].invertido=0;
-				}
-								
-			  mos[linear].vds[0]= varAtual[netlist[i].a] - varAtual[netlist[i].b];
-			  mos[linear].vgs[0]= varAtual[netlist[i].c] - varAtual[netlist[i].b];
-			  mos[linear].vbs[0]= varAtual[netlist[i].d] - varAtual[netlist[i].b];			  			  
-			  mos[linear].vds[1]= varProx[netlist[i].a] - varProx[netlist[i].b];
-			  mos[linear].vgs[1]= varProx[netlist[i].c] - varProx[netlist[i].b];
-			  mos[linear].vbs[1]= varProx[netlist[i].d] - varProx[netlist[i].b];
+											
+			  mos[linear].vds= varAtual[netlist[i].a] - varAtual[netlist[i].b];
+			  mos[linear].vgs= varAtual[netlist[i].c] - varAtual[netlist[i].b];
+			  mos[linear].vbs= varAtual[netlist[i].d] - varAtual[netlist[i].b];			  			  
 			  
 			   //VERIFICA TIPO P
-					if (mos[linear].tipo[0]=='P'){// && (mos[linear].pmos==0)){
-						mos[linear].vds[0] *= -1.0;
-						mos[linear].vgs[0] *= -1.0;
-						mos[linear].vbs[0] *= -1.0;
-						mos[linear].vt[0]  *= -1.0;
-						//mos[linear].pmos=1;
+					if (mos[linear].tipo[0]=='P'){						
+						mos[linear].vds *= -1.0;
+						mos[linear].vgs *= -1.0;
+						mos[linear].vbs *= -1.0;
+						mos[linear].vt  *= -1.0;
+						mos[linear].pmos=1;
 					}	
-	  	
-           if (mos[linear].vbs[0]>(mos[linear].phi)/2){
-              mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt((mos[linear].phi)/2)-sqrt(mos[linear].phi));
+					  	
+           if (mos[linear].vbs>(mos[linear].phi)/2){
+              mos[linear].vt=mos[linear].vt0+mos[linear].gama*(sqrt((mos[linear].phi)/2)-sqrt(mos[linear].phi));
             }
             else {
-            mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-mos[linear].vbs[0])-sqrt(mos[linear].phi));
+            mos[linear].vt=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-mos[linear].vbs)-sqrt(mos[linear].phi));
             }
       	verMOSCond();
     
@@ -576,7 +556,7 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].c][netlist[i].d]-=gComplex;
             YnComplex[netlist[i].d][netlist[i].c]-=gComplex;
         }
-           else if (tipo=='K'){
+        else if (tipo=='K'){
         fim = 0;
         for (indice = 1; indice <= ne && fim != 2; indice++){
             if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
@@ -833,7 +813,7 @@ int main(void)
       linear++;
       sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[linear].tipo,comprimento,largura,&mos[linear].transK,&mos[linear].vt0,&mos[linear].lambda,&mos[linear].gama,&mos[linear].phi,&mos[linear].ld);
       mos[linear].pmos=0;
-      mos[linear].invertido=0;	
+	  mos[linear].invertido=0;	
       if (mos[linear].tipo[0]=='N')
       	mos[linear].cox=(2*mos[linear].transK)/0.05;
       else if (mos[linear].tipo[0]=='P')
@@ -850,11 +830,11 @@ int main(void)
     printf("%s %s %s %s %s %s %g %g %g %g %g %g %g %g\n",netlist[ne].nome,na,nb,nc,nd,mos[linear].tipo,mos[linear].cp,mos[linear].lg,mos[linear].transK,mos[linear].vt0,mos[linear].lambda,mos[linear].gama,mos[linear].phi,mos[linear].ld);
       //TransistorMOS: M<nome> <nód> <nóg> <nós> <nób> <NMOS ou PMOS> L=<comprimento> W=<largura> <K> <Vt0> <lambda> <gama> <phi> <Ld>
     	
- 	 strcpy(netlist[ne].tipo,mos[linear].tipo);	  
-      netlist[ne].a=numero(na); tensaoMOS[linear][0]=netlist[ne].a; // 0 -> vd associado ao numero do no pela 1 vez
-      netlist[ne].c=numero(nb); tensaoMOS[linear][1]=netlist[ne].c; // 1 -> vg associado ao numero do no pela 1 vez
-      netlist[ne].b=numero(nc); tensaoMOS[linear][2]=netlist[ne].b; // 2 -> vs associado ao numero do no pela 1 vez
-      netlist[ne].d=numero(nd); tensaoMOS[linear][3]=netlist[ne].d; // 3 -> vb associado ao numero do no pela 1 vez
+ 	  strcpy(netlist[ne].tipo,mos[linear].tipo);	  
+      netlist[ne].a=numero(na); // 0 -> vd associado ao numero do no pela 1 vez
+      netlist[ne].c=numero(nb); // 1 -> vg associado ao numero do no pela 1 vez
+      netlist[ne].b=numero(nc); // 2 -> vs associado ao numero do no pela 1 vez
+      netlist[ne].d=numero(nd); // 3 -> vb associado ao numero do no pela 1 vez
           
       /*
 	  //resistor RDS
@@ -940,8 +920,7 @@ int main(void)
   while(fim==0){
   	contador++; 
      linear=0;    
-	 /* Zera sistema */
-                   
+	 /* Zera sistema */                   
      montaEstampaDC();        
       /* Resolve o sistema */
     if (resolversistema()) {
@@ -950,7 +929,7 @@ int main(void)
       exit;
     }
     if(contador==1){mostraNetlist();}
-     if (linear!=0){
+ 
     verificaConvergencia();
     //verMOSCond();       
   	for (k = 1; (k <=nv)&&(k != -1);){
@@ -959,7 +938,7 @@ int main(void)
 	}
 	if (k==nv+1){fim =1;}
     else if (contador==10000){fim =1;} 
-     }
+     
      if (linear==0){fim=1; }
 	}//fim do while
   
