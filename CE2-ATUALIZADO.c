@@ -190,7 +190,7 @@ void verMOSCond(void){
         mos[linear].gm=0;
         mos[linear].gmb=0;
         mos[linear].i0=0;
-       strcpy(mos[linear].modo,"CORTE");
+       strcmp(mos[linear].modo,"CORTE");
 	   }
         //TRIODO
       else if(vds<vgs-vt){         
@@ -227,6 +227,7 @@ void verMOSCond(void){
 	}
 
 void mostraNetlist(void){
+	linear=0;
 	for (i=1; i<=ne; i++) {
     tipo=netlist[i].nome[0];
     if (tipo=='R'|| tipo=='C') {
@@ -246,7 +247,11 @@ void mostraNetlist(void){
     }
   
   else if (tipo=='M') {
-      printf("%s %s %d %d MODO: %s INVERTIDO=%d  I0 =%e Ids= %e Gds=%e Gm=%e Gmb=%e Cgd=%e Cbg=%e Cgs=%e\n",netlist[i].nome,netlist[i].tipo,netlist[i].a,netlist[i].b,netlist[i].modo,netlist[i].invertido,netlist[i].i0,netlist[i].ids,netlist[i].rgds,netlist[i].gm,netlist[i].gmb,netlist[i].cgd,netlist[i].cbg,netlist[i].cgs);
+  		linear++;
+      printf("%s %s %d %d MODO: %s INVERTIDO=%d  I0 =%e Vds=%e Vgs=%e Vbs=%e Ids=%e \nGds=%e Gm=%e Gmb=%e Cgd=%e Cbg=%e Cgs=%e\n",netlist[i].nome,
+	  netlist[i].tipo,netlist[i].a,netlist[i].b,netlist[i].modo,netlist[i].invertido,netlist[i].i0,
+	  mos[linear].vd[0]-mos[linear].vs[0],mos[linear].vg[0]-mos[linear].vs[0],mos[linear].vb[0]-mos[linear].vs[0],netlist[i].ids,
+	  netlist[i].rgds,netlist[i].gm,netlist[i].gmb,netlist[i].cgd,netlist[i].cbg,netlist[i].cgs);
   }
       if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L')
       printf("Corrente jx: %d\n",netlist[i].x);
@@ -565,7 +570,7 @@ void montaEstampaAC(void){
             
       else if (tipo=='K'){
         fim = 0;
-        for (indice = 1; indice <= ne && fim != 2; indice++){
+        for (indice = 1;indice <= ne && fim != 2; indice++){
             if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
                 fim++;
                 valorLA = ind_L[indice];
@@ -848,7 +853,7 @@ int main(void)
 	 //transcondutancia Gmb      
       netlist[ne].gmb=mos[linear].gmb;
       //fonte de corrente I0
-      netlist[ne].i0= mos[linear].i0;    */ 
+      netlist[ne].i0= mos[linear].i0;  */  
       //capacitancia CGD      
       netlist[ne].cgd=1e9;
       //capacitancia CGS     
@@ -949,11 +954,9 @@ int main(void)
   
   printf("Netlist interno final:\n");
   mostraNetlist();
-  getch();
-  
+  getch();  
   printf("\n%d iteracoes foram realizadas.\n",contador);
-  contador=0;
-  
+  contador=0;  
   printf("\n%d Elementos nao lineares\n",linear);
   for(i=1;i<=linear;i++){
     for(j = 1; j <=nv; j++){
@@ -986,8 +989,7 @@ int main(void)
 	for (i=0; i<=nv; i++) {
       for (j=0; j<=nv+1; j++)
         YnComplex[i][j]=0.0 + 0.0*I;
-    }
-   
+    }   
     trocaNome();
   
   if(strcmp(escala,"LIN")==0){
