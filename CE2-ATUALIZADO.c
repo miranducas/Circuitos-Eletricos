@@ -70,6 +70,11 @@ typedef struct elemento { /* Elemento do netlist */
 
 elemento netlist[MAX_ELEM]; /* Netlist */
 
+typedef struct indEstrutura {
+  double valor;
+}indEstrutura;
+indEstrutura indEstr[MAX_ELEM];
+
 typedef struct acoplamento {
   char lA[MAX_NOME],lB[MAX_NOME];
 } acoplamento;
@@ -123,10 +128,10 @@ double complex
 double sind (double ang)
 {
     double t = sin( (ang / 180.0) * PI );
-    if (t > UM)
+    if (fabs(t) > UM)
         return (1.0);
-    if (t < -UM)
-        return (-1.0);
+    //if (t < -UM)
+      //  return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
@@ -136,10 +141,10 @@ double sind (double ang)
 double cosd (double ang)
 {
     double t = cos( (ang / 180.0) * PI );
-    if (t > UM)
+    if (fabs(t) > UM)
         return (1.0);
-    if ( t < -UM)
-        return (-1.0);
+    //if ( t < -UM)
+      //  return (-1.0);
     if (fabs(t) < ZERO)
         return (0.0);
 
@@ -173,7 +178,7 @@ void verMOSCond(void){
 		vds *= -1.0;
 		vgs *= -1.0;
 		vbs *= -1.0;
-		vt  *= -1.0;
+		vt  *=  1.0;
 	}
 	if (mos[linear].tipo[0]=='N'){
 		vds *= 1.0;
@@ -474,8 +479,7 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].b][netlist[i].x]-=1;
             YnComplex[netlist[i].x][netlist[i].a]-=1;
             YnComplex[netlist[i].x][netlist[i].b]+=1;
-            
-            YnComplex[netlist[i].x][nv+1]-=netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I;
+            YnComplex[netlist[i].x][nv+1]-= (netlist[i].modulo*cosd(netlist[i].fase) + netlist[i].modulo*sind(netlist[i].fase)*I);
 			
         
 		}
@@ -568,7 +572,7 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].d][netlist[i].c]-=gComplex;
         }
             
-      else if (tipo=='K'){
+      /*else if (tipo=='K'){
         fim = 0;
         for (indice = 1;indice <= ne && fim != 2; indice++){
             if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
@@ -579,6 +583,20 @@ void montaEstampaAC(void){
             else if(strcmp(acop_K[i].lB, netlist[indice].nome) == 0){
                 fim++;
                 valorLB = ind_L[indice];
+                L2=indice;
+            }
+        }*/
+        else if (tipo=='K'){
+        fim = 0;
+        for (indice = 1; indice <= ne && fim != 2; indice++){
+            if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
+                fim++;
+                valorLA = indEstr[indice].valor;
+                L1=indice;
+            }
+            else if(strcmp(acop_K[i].lB, netlist[indice].nome) == 0){
+                fim++;
+                valorLB = indEstr[indice].valor;
                 L2=indice;
             }
         }
@@ -597,11 +615,11 @@ void verificaConvergencia(void)
 	{
 		varProx[i]=Yn[i][nv+1];
 		if(contador % 1000 != 0){		
-		if(fabs(varProx[i])>1 && fabs((varProx[i]-varAtual[i])/varProx[i])<1e-12)
+		if(fabs(varProx[i])>1 && fabs((varProx[i]-varAtual[i])/varProx[i])<1e-9)
 		{convergencia[i]=1;
 		varAtual[i]=varProx[i];
 		varProx[i]=0;}
-		else if(fabs(varProx[i])<=1 && fabs(varProx[i]-varAtual[i])<1e-12)
+		else if(fabs(varProx[i])<=1 && fabs(varProx[i]-varAtual[i])<1e-9)
 		{convergencia[i]=1;
 		varAtual[i]=varProx[i];
 		varProx[i]=0;}	
@@ -612,7 +630,9 @@ void verificaConvergencia(void)
 		}
 	}
 			else if (contador % 1000 == 0)
-			 {  varAtual[i] = rand()%21 -10;
+			 {  
+			 	if(i>nn){varAtual[i] = rand()%11 -5;}
+			 	else{varAtual[i] = rand()%21 -10;}
 			 	//varAtual[i] = varAtual[i]/100;
 			}
 }
@@ -772,11 +792,13 @@ int main(void)
     if (tipo=='R' || tipo=='L' || tipo=='C') {
       sscanf(p,"%10s%10s%lg",na,nb,&netlist[ne].valor);
     if (tipo=='L') {     //substitui a indutancia pela baixa resistencia e armazena a indutancia em outra var
-      inc_L++;  
+      inc_L++;
+	  indEstr[ne].valor = netlist[ne].valor;  
       ind_L[inc_L] = netlist[ne].valor;
       netlist[ne].valor = 1e-9;
       printf("%s %s %s %g\n",netlist[ne].nome,na,nb,ind_L[inc_L]);
     }
+    
     else if (tipo=='C') {     //substitui a capacitancia pela alta resistencia e armazena a capacitancia em outra var
       inc_C++;
           cap_C[inc_C] = netlist[ne].valor;
@@ -1024,7 +1046,7 @@ int main(void)
 	getch();
   }
   else if (strcmp(escala,"DEC")==0){
-  	passo=1/(pontos-1);
+  	passo=1.0/(pontos-1.0);
   	
   	arquivo = fopen(novonome, "w");
   	fprintf(arquivo,"f ");
@@ -1036,7 +1058,7 @@ int main(void)
 		printf("Erro, nao foi possivel abrir o arquivo\n");
     else{
 		
-  		for(frequencia=freqInicial;frequencia<=freqFinal;frequencia*=pow(10,passo)){
+  		for(frequencia=freqInicial;frequencia<=freqFinal; frequencia*=pow(10,passo)) {
   		  	inc_L=0; inc_C=0;
   		  	linear=0;
 			montaEstampaAC();
@@ -1056,7 +1078,7 @@ int main(void)
   }
   	  
    else if (strcmp(escala,"OCT")==0){
-  		passo=1/(pontos-1);
+  		passo=1.0/(pontos-1.0);
   		
   		arquivo = fopen(novonome, "w");
   		fprintf(arquivo,"f ");
@@ -1077,7 +1099,7 @@ int main(void)
 				fprintf(arquivo,"%g ",frequencia);
 				for (i=1; i<=nv; i++) {
     				fprintf(arquivo,"%g %g ",cabs(YnComplex[i][nv+1]),(180/PI)*carg(YnComplex[i][nv+1]));
-  				}	
+  				}
 				fprintf(arquivo,"\n");  				
 	  		}
 	  	}
