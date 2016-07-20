@@ -84,10 +84,10 @@ acoplamento acop_K[MAX_ELEM];
 typedef struct transitorMOS {
    char tipo[MAX_NOME],modo[MAX_NOME];
    double cp,lg,transK,vt0,lambda,gama,phi,ld,cox,
-   		  vd[2],vg[2],vs[2],vb[2],vt[2],
+   		  vt[2],vgs[2],vds[2],vbs[2],
           cgs,cgd,cbg,
 		  rgds,gm,gmb,ids,i0;
-   int invertido;
+   int invertido,pmos;
 } transistorMOS;
 
 transistorMOS mos[MAX_ELEM];
@@ -127,7 +127,7 @@ double complex
 
 double sind (double ang)
 {
-    double t = sin( (ang / 180.0) * PI );
+    double t = sin( (ang/ 180.0) * PI );
     if (fabs(t) > UM)
         return (1.0);
     //if (t < -UM)
@@ -161,33 +161,8 @@ void trocaNome(){ //rotina que troca extensao de .net para .tab
 
 void verMOSCond(void){
  //verifica as tensões do transistor MOS e calcula adequadamente as condutâncias linearizadas
-	mos[linear].invertido=0;	
-	//VERIFICA INVERSAO	
-		vds = mos[linear].vd[0]-mos[linear].vs[0];
-		vgs = mos[linear].vg[0]-mos[linear].vs[0];
-		vbs = mos[linear].vb[0]-mos[linear].vs[0];
-		vt=mos[linear].vt[0];	
-		if((vds>0 && mos[linear].tipo[0]=='P') || (vds<0 && mos[linear].tipo[0]=='N')){
-		mos[linear].invertido=1;
-		aux  = mos[linear].vd[0];
-    	mos[linear].vd[0] = mos[linear].vs[0];
-		mos[linear].vs[0] = aux;
-        vds = mos[linear].vd[0]-mos[linear].vs[0];
-    }
-	if (mos[linear].tipo[0]=='P'){
-		vds *= -1.0;
-		vgs *= -1.0;
-		vbs *= -1.0;
-		vt  *=  1.0;
-	}
-	if (mos[linear].tipo[0]=='N'){
-		vds *= 1.0;
-		vgs *= 1.0;
-		vbs *= 1.0;
-		vt  *= 1.0;
-	}
 		 //CORTE
-      if(vgs<=vt || vds== 0){       
+      if(mos[linear].vgs[0]<mos[linear].vt[0] && mos[linear].vds>0){       
     	mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=mos[linear].cox*mos[linear].lg*mos[linear].cp;
@@ -195,19 +170,19 @@ void verMOSCond(void){
         mos[linear].gm=0;
         mos[linear].gmb=0;
         mos[linear].i0=0;
-       strcmp(mos[linear].modo,"CORTE");
+       strcpy(mos[linear].modo,"CORTE");
 	   }
         //TRIODO
-      else if(vds<vgs-vt){         
+      else if((mos[linear].vds[0]<mos[linear].vgs[0]-mos[linear].vt[0])){ //&& mos[linear].tipo[0]=='N')||((mos[linear].vds[0]>mos[linear].vgs[0]-mos[linear].vt[0])&& mos[linear].tipo[0]=='P')) {         
         mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld+(mos[linear].cox*mos[linear].cp*mos[linear].lg)/2;
         mos[linear].cgd=mos[linear].cgs;
         mos[linear].cbg=0;        
-        mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(vgs-vt)-2*vds+4*mos[linear].lambda*(vgs-vt)*(vds)-3*mos[linear].lambda*(vds)*(vds)));
-        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(vds)*(1+mos[linear].lambda*(vds))));
-    	mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-vbs)));       
-        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(vgs-vt)*(vds)-(vds*vds))*(1+mos[linear].lambda*vds);
-        //I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
-        mos[linear].i0 = mos[linear].ids - mos[linear].gm*vgs - mos[linear].gmb*vbs - mos[linear].rgds*vds;
+        mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs[0]-mos[linear].vt[0])-2*mos[linear].vds[0]+4*mos[linear].lambda*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vds[0])-3*mos[linear].lambda*(mos[linear].vds[0])*(mos[linear].vds[0])));
+        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vds[0])*(1+mos[linear].lambda*(mos[linear].vds[0]))));
+    	mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-mos[linear].vbs[0])));       
+        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vds[0])-(mos[linear].vds[0]*mos[linear].vds[0]))*(1+mos[linear].lambda*mos[linear].vds[0]);
+        //I0 = id - Gm*mos[linear].vgs[0] - Gmb*mos[linear].vbs[0] - Gds*mos[linear].vds[0]
+        mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs[0] - mos[linear].gmb*mos[linear].vbs[0] - mos[linear].rgds*mos[linear].vds[0];
         strcpy(mos[linear].modo,"TRIODO");
 	  }      
       //SATURACAO
@@ -215,12 +190,12 @@ void verMOSCond(void){
     	mos[linear].cgs=mos[linear].cox*mos[linear].lg*mos[linear].ld+2*(mos[linear].cox*mos[linear].cp*mos[linear].lg)/3;
         mos[linear].cgd=mos[linear].cox*mos[linear].lg*mos[linear].ld;
         mos[linear].cbg=0;
-    	mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(vgs-vt)*(vgs-vt)*mos[linear].lambda);
-        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(vgs-vt)*(1+mos[linear].lambda*vds)));
-        mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-vbs))); 
-        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(vgs-vt)*(vgs-vt)*(1+mos[linear].lambda*vds);
-     	//I0 = id - Gm*vgs - Gmb*vbs - Gds*vds
-        mos[linear].i0 = mos[linear].ids - mos[linear].gm*vgs - mos[linear].gmb*vbs - mos[linear].rgds*vds;
+    	mos[linear].rgds = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vgs[0]-mos[linear].vt[0])*mos[linear].lambda);
+        mos[linear].gm = ((mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(2*(mos[linear].vgs[0]-mos[linear].vt[0])*(1+mos[linear].lambda*mos[linear].vds[0])));
+        mos[linear].gmb = (mos[linear].gm*mos[linear].gama)/(2*sqrt(fabs(mos[linear].phi-mos[linear].vbs[0]))); 
+        mos[linear].ids = (mos[linear].transK)*(mos[linear].lg/mos[linear].cp)*(mos[linear].vgs[0]-mos[linear].vt[0])*(mos[linear].vgs[0]-mos[linear].vt[0])*(1+mos[linear].lambda*mos[linear].vds[0]);
+     	//I0 = id - Gm*mos[linear].vgs[0] - Gmb*mos[linear].vbs[0] - Gds*mos[linear].vds[0]
+        mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs[0] - mos[linear].gmb*mos[linear].vbs[0] - mos[linear].rgds*mos[linear].vds[0];
         strcpy(mos[linear].modo,"SATURACAO");
 	  } 
 		if (mos[linear].tipo[0]=='N'){
@@ -253,9 +228,9 @@ void mostraNetlist(void){
   
   else if (tipo=='M') {
   		linear++;
-      printf("%s %s %d %d MODO: %s INVERTIDO=%d  I0 =%e Vds=%e Vgs=%e Vbs=%e Ids=%e \nGds=%e Gm=%e Gmb=%e Cgd=%e Cbg=%e Cgs=%e\n",netlist[i].nome,
+      printf("\n%s %s %d %d MODO: %s INVERTIDO=%d  I0 =%e Vds=%e Vgs=%e Vbs=%e Ids=%e \nGds=%e Gm=%e Gmb=%e Cgd=%e Cbg=%e Cgs=%e\n",netlist[i].nome,
 	  netlist[i].tipo,netlist[i].a,netlist[i].b,netlist[i].modo,netlist[i].invertido,netlist[i].i0,
-	  mos[linear].vd[0]-mos[linear].vs[0],mos[linear].vg[0]-mos[linear].vs[0],mos[linear].vb[0]-mos[linear].vs[0],netlist[i].ids,
+	  mos[linear].vds[0],mos[linear].vgs[0], mos[linear].vbs[0],netlist[i].ids,
 	  netlist[i].rgds,netlist[i].gm,netlist[i].gmb,netlist[i].cgd,netlist[i].cbg,netlist[i].cgs);
   }
       if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L')
@@ -345,11 +320,7 @@ void montaEstampaDC(void){
         }
       else if (tipo=='M') {
 	          linear++;
-	         // mos[linear].gm=0;
-	         // mos[linear].gmb=0;
-	         // mos[linear].rgds=0;
-	         // mos[linear].i0=0;	  
-  		//if(contador ==1){		
+			  /*
 			  mos[linear].vd[0]=varAtual[netlist[i].a];
 			  mos[linear].vd[1]=varProx[netlist[i].a];
 			  mos[linear].vg[0]=varAtual[netlist[i].c];
@@ -360,13 +331,47 @@ void montaEstampaDC(void){
 			  mos[linear].vb[1]=varProx[netlist[i].d];
 		      mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-(mos[linear].vb[0]-mos[linear].vs[0]))-sqrt(mos[linear].phi));  
 			  mos[linear].vt[1]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-(mos[linear].vb[1]-mos[linear].vs[1]))-sqrt(mos[linear].phi)); 
-			//}
+			  */
+			  
+			  mos[linear].gm=0;
+			  mos[linear].gmb=0;
+			  mos[linear].rgds=0;
+			  mos[linear].i0=0;			 
+			  mos[linear].vds[0]= varAtual[netlist[i].a] - varAtual[netlist[i].b]; 	
+			  
+			 		  
+			  //VERIFICA INVERSAO
+			  if((mos[linear].vds[0]>0 && mos[linear].tipo[0]=='P') || (mos[linear].vds[0]<0 && mos[linear].tipo[0]=='N')){
+					mos[linear].invertido=1;
+					aux= netlist[i].a;
+					netlist[i].a = netlist[i].b;
+					netlist[i].b = aux;
+					}
+				else if ((mos[linear].vds[0]<0 && mos[linear].tipo[0]=='P') || (mos[linear].vds[0]>0 && mos[linear].tipo[0]=='N')){
+					mos[linear].invertido=0;
+				}
+								
+			  mos[linear].vds[0]= varAtual[netlist[i].a] - varAtual[netlist[i].b];
+			  mos[linear].vgs[0]= varAtual[netlist[i].c] - varAtual[netlist[i].b];
+			  mos[linear].vbs[0]= varAtual[netlist[i].d] - varAtual[netlist[i].b];			  			  
+			  mos[linear].vds[1]= varProx[netlist[i].a] - varProx[netlist[i].b];
+			  mos[linear].vgs[1]= varProx[netlist[i].c] - varProx[netlist[i].b];
+			  mos[linear].vbs[1]= varProx[netlist[i].d] - varProx[netlist[i].b];
+			  
+			   //VERIFICA TIPO P
+					if (mos[linear].tipo[0]=='P'){// && (mos[linear].pmos==0)){
+						mos[linear].vds[0] *= -1.0;
+						mos[linear].vgs[0] *= -1.0;
+						mos[linear].vbs[0] *= -1.0;
+						mos[linear].vt[0]  *= -1.0;
+						//mos[linear].pmos=1;
+					}	
 	  	
-           if (mos[linear].vb[0]-mos[linear].vs[0]>(mos[linear].phi)/2){
+           if (mos[linear].vbs[0]>(mos[linear].phi)/2){
               mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt((mos[linear].phi)/2)-sqrt(mos[linear].phi));
             }
             else {
-            mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-(mos[linear].vb[0]-mos[linear].vs[0]))-sqrt(mos[linear].phi));
+            mos[linear].vt[0]=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-mos[linear].vbs[0])-sqrt(mos[linear].phi));
             }
       	verMOSCond();
     
@@ -571,22 +576,7 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].c][netlist[i].d]-=gComplex;
             YnComplex[netlist[i].d][netlist[i].c]-=gComplex;
         }
-            
-      /*else if (tipo=='K'){
-        fim = 0;
-        for (indice = 1;indice <= ne && fim != 2; indice++){
-            if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
-                fim++;
-                valorLA = ind_L[indice];
-                L1=indice;
-            }
-            else if(strcmp(acop_K[i].lB, netlist[indice].nome) == 0){
-                fim++;
-                valorLB = ind_L[indice];
-                L2=indice;
-            }
-        }*/
-        else if (tipo=='K'){
+           else if (tipo=='K'){
         fim = 0;
         for (indice = 1; indice <= ne && fim != 2; indice++){
             if(strcmp(acop_K[i].lA, netlist[indice].nome) == 0){
@@ -603,9 +593,7 @@ void montaEstampaAC(void){
         ind_M = netlist[i].valor*(sqrt(valorLA*valorLB));      
         YnComplex[netlist[L1].x][netlist[L2].x]+=2*PI*frequencia*ind_M*I;
         YnComplex[netlist[L2].x][netlist[L1].x]+=2*PI*frequencia*ind_M*I;
-        YnComplex[netlist[L1].x][nv+1] += valorLA*varAtual[netlist[L1].x] + ind_M*varAtual[netlist[L2].x];
-        YnComplex[netlist[L2].x][nv+1] += ind_M*varAtual[netlist[L1].x] + valorLB*varAtual[netlist[L2].x];
-		}
+        }
    	  }
 }
 
@@ -844,7 +832,8 @@ int main(void)
       srand(time(NULL));
       linear++;
       sscanf(p,"%10s%10s%10s%10s%10s%10s%10s%lg%lg%lg%lg%lg%lg",na,nb,nc,nd,mos[linear].tipo,comprimento,largura,&mos[linear].transK,&mos[linear].vt0,&mos[linear].lambda,&mos[linear].gama,&mos[linear].phi,&mos[linear].ld);
-      
+      mos[linear].pmos=0;
+      mos[linear].invertido=0;	
       if (mos[linear].tipo[0]=='N')
       	mos[linear].cox=(2*mos[linear].transK)/0.05;
       else if (mos[linear].tipo[0]=='P')
@@ -960,9 +949,10 @@ int main(void)
       getch();
       exit;
     }
+    if(contador==1){mostraNetlist();}
      if (linear!=0){
     verificaConvergencia();
-    verMOSCond();       
+    //verMOSCond();       
   	for (k = 1; (k <=nv)&&(k != -1);){
 		if(convergencia[k]==1){k++;}
 		else{k=-1;}
@@ -1016,7 +1006,7 @@ int main(void)
   
   if(strcmp(escala,"LIN")==0){
   	
-	passo=(freqFinal-freqInicial)/(pontos-1);
+	passo=(freqFinal-freqInicial)/(pontos+1);
   	
 	arquivo = fopen(novonome, "w");
 	fprintf(arquivo,"f ");
@@ -1046,7 +1036,8 @@ int main(void)
 	getch();
   }
   else if (strcmp(escala,"DEC")==0){
-  	passo=1.0/(pontos-1.0);
+  	if(pontos!=0){passo=1.0/(pontos);}
+  	else { pontos=1;}
   	
   	arquivo = fopen(novonome, "w");
   	fprintf(arquivo,"f ");
