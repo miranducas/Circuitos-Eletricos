@@ -340,7 +340,7 @@ void montaEstampaDC(void){
 				//VERIFICA INVERSAO
 			  if((mos[linear].vds>0 && mos[linear].tipo[0]=='P')||(mos[linear].vds<0 && mos[linear].tipo[0]=='N')){
 					mos[linear].invertido=1;
-					aux= netlist[i].a;
+					aux          = netlist[i].a;
 					netlist[i].a = netlist[i].b;
 					netlist[i].b = aux;					
 					}
@@ -525,12 +525,14 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
             YnComplex[netlist[i].b][netlist[i].a]-=gComplex;  
         	
-			//MONTA I0			
+			//MONTA I0
+			mos[linear].i0=0;			
         	netlist[i].i0 = mos[linear].i0;
         	netlist[i].ids=mos[linear].ids;
 	    	gComplex=netlist[i].i0; 
-            YnComplex[netlist[i].a][nv+1]=gComplex;
-            YnComplex[netlist[i].b][nv+1]=gComplex;
+            YnComplex[netlist[i].a][nv+1]-=gComplex;
+            YnComplex[netlist[i].b][nv+1]+=gComplex;
+            
 				//MONTA GM
         	  netlist[i].gm = mos[linear].gm;
 	    	  gComplex=netlist[i].gm;         
@@ -540,13 +542,14 @@ void montaEstampaAC(void){
             YnComplex[netlist[i].b][netlist[i].c]-=gComplex;
         
         	  //MONTA GMB
-        	  netlist[i].gmb = mos[linear].gmb;
-	    	  gComplex=netlist[i].gmb; 
+        	netlist[i].gmb = mos[linear].gmb;
+	    	gComplex=netlist[i].gmb; 
           YnComplex[netlist[i].a][netlist[i].d]+=gComplex;
           YnComplex[netlist[i].b][netlist[i].b]+=gComplex;
           YnComplex[netlist[i].a][netlist[i].b]-=gComplex;
           YnComplex[netlist[i].b][netlist[i].d]-=gComplex;
-			//MONTA CGD
+		   	
+		   	//MONTA CGD
 		  gComplex=2*PI*frequencia*mos[linear].cgd*I;
 	        YnComplex[netlist[i].a][netlist[i].a]+=gComplex;
             YnComplex[netlist[i].c][netlist[i].c]+=gComplex;
@@ -565,7 +568,7 @@ void montaEstampaAC(void){
 	        YnComplex[netlist[i].c][netlist[i].c]+=gComplex;
             YnComplex[netlist[i].d][netlist[i].d]+=gComplex;
             YnComplex[netlist[i].c][netlist[i].d]-=gComplex;
-            YnComplex[netlist[i].d][netlist[i].c]-=gComplex;
+            YnComplex[netlist[i].d][netlist[i].c]-=gComplex; 
         }
         else if (tipo=='K'){
         fim = 0;
@@ -982,6 +985,7 @@ int main(void)
   
   
   //RESPOSTA EM FREQUENCIA 
+  
   if(tem==1){
 	printf("\nAnalise de Resposta em Frequencia:\n");	
 	
@@ -1023,7 +1027,7 @@ int main(void)
 	getch();
   }
   else if (strcmp(escala,"DEC")==0){
-  	if(pontos!=0){passo=1.0/(pontos);}
+  	if(pontos!=0){passo=1.0/(pontos-1.0);}
   	else { pontos=1;}
   	
   	arquivo = fopen(novonome, "w");
@@ -1056,8 +1060,7 @@ int main(void)
   }
   	  
    else if (strcmp(escala,"OCT")==0){
-  		passo=1.0/(pontos-1.0);
-  		
+  		passo=1.0/(pontos-1.0);	  		
   		arquivo = fopen(novonome, "w");
   		fprintf(arquivo,"f ");
 	    for (i=1; i<=nv; i++)
