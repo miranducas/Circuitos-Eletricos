@@ -846,16 +846,7 @@ int main(void)
       mos[linear].ng = netlist[ne].c; 
       mos[linear].ns = netlist[ne].b;
       mos[linear].nb = netlist[ne].d;
-          
-      /*
-	  //resistor RDS
-	  netlist[ne].rgds=mos[linear].rgds; 		
-		//transcondutancia Gm
-      netlist[ne].gm=mos[linear].gm;
-	 //transcondutancia Gmb      
-      netlist[ne].gmb=mos[linear].gmb;
-      //fonte de corrente I0
-      netlist[ne].i0= mos[linear].i0;  */  
+         
       //capacitancia CGD      
       netlist[ne].cgd=1e9;
       //capacitancia CGS     
