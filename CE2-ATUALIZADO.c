@@ -84,6 +84,7 @@ acoplamento acop_K[MAX_ELEM];
 typedef struct transitorMOS {
    char tipo[MAX_NOME],modo[MAX_NOME];
    double cp,lg,transK,vt0,lambda,gama,phi,ld,cox,
+   		  ns,nd,ng,nb,
    		  vt,vgs,vds,vbs,
           cgs,cgd,cbg,
 		  rgds,gm,gmb,ids,i0;
@@ -323,21 +324,28 @@ void montaEstampaDC(void){
 			  mos[linear].gm=0;
 			  mos[linear].gmb=0;
 			  mos[linear].rgds=0;
-			  mos[linear].i0=0;				  
+			  mos[linear].i0=0;	
+			  mos[linear].invertido=0;
+			  if(mos[linear].invertido == 0){
+			  	netlist[i].a =  mos[linear].nd;		  	
+     			netlist[i].c =  mos[linear].ng; 
+    			netlist[i].b =  mos[linear].ns;
+     			netlist[i].d =  mos[linear].nb;			  	
+			  }			  			  
 			  mos[linear].vds= varAtual[netlist[i].a]-varAtual[netlist[i].b]; 			  
-			  			 		  
-			  //VERIFICA INVERSAO
+				//VERIFICA INVERSAO
 			  if((mos[linear].vds>0 && mos[linear].tipo[0]=='P')||(mos[linear].vds<0 && mos[linear].tipo[0]=='N')){
 					mos[linear].invertido=1;
 					aux= netlist[i].a;
 					netlist[i].a = netlist[i].b;
-					netlist[i].b = aux;
+					netlist[i].b = aux;					
 					}
-											
+			   else{mos[linear].invertido=0;}
+			    													
 			  mos[linear].vds= varAtual[netlist[i].a] - varAtual[netlist[i].b];
 			  mos[linear].vgs= varAtual[netlist[i].c] - varAtual[netlist[i].b];
 			  mos[linear].vbs= varAtual[netlist[i].d] - varAtual[netlist[i].b];			  			  
-			  
+				
 			   //VERIFICA TIPO P
 					if (mos[linear].tipo[0]=='P'){						
 						mos[linear].vds *= -1.0;
@@ -345,7 +353,7 @@ void montaEstampaDC(void){
 						mos[linear].vbs *= -1.0;
 						mos[linear].vt  *= -1.0;
 						mos[linear].pmos=1;
-					}	
+					}								
 					  	
            if (mos[linear].vbs>(mos[linear].phi)/2){
               mos[linear].vt=mos[linear].vt0+mos[linear].gama*(sqrt((mos[linear].phi)/2)-sqrt(mos[linear].phi));
@@ -353,8 +361,7 @@ void montaEstampaDC(void){
             else {
             mos[linear].vt=mos[linear].vt0+mos[linear].gama*(sqrt(mos[linear].phi-mos[linear].vbs)-sqrt(mos[linear].phi));
             }
-      	verMOSCond();
-    
+            verMOSCond();      		  	  	
         //invertido?
         netlist[i].invertido = mos[linear].invertido;
         strcpy(netlist[i].modo,mos[linear].modo);
@@ -835,6 +842,10 @@ int main(void)
       netlist[ne].c=numero(nb); // 1 -> vg associado ao numero do no pela 1 vez
       netlist[ne].b=numero(nc); // 2 -> vs associado ao numero do no pela 1 vez
       netlist[ne].d=numero(nd); // 3 -> vb associado ao numero do no pela 1 vez
+      mos[linear].nd = netlist[ne].a;
+      mos[linear].ng = netlist[ne].c; 
+      mos[linear].ns = netlist[ne].b;
+      mos[linear].nb = netlist[ne].d;
           
       /*
 	  //resistor RDS
@@ -931,7 +942,7 @@ int main(void)
     if(contador==1){mostraNetlist();}
  
     verificaConvergencia();
-    //verMOSCond();       
+    verMOSCond();       
   	for (k = 1; (k <=nv)&&(k != -1);){
 		if(convergencia[k]==1){k++;}
 		else{k=-1;}
