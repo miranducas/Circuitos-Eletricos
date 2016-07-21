@@ -171,6 +171,7 @@ void verMOSCond(void){
         mos[linear].gm=0;
         mos[linear].gmb=0;
         mos[linear].i0=0;
+        mos[linear].ids=0;
        strcpy(mos[linear].modo,"CORTE");
 	   }
         //TRIODO
@@ -203,7 +204,8 @@ void verMOSCond(void){
 		mos[linear].i0 *= 1.0;
 		}
 		else if(mos[linear].tipo[0]=='P'){
-		mos[linear].i0 *= -1.0;
+		mos[linear].ids *= -1.0;
+		mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs - mos[linear].gmb*mos[linear].vbs - mos[linear].rgds*mos[linear].vds;	
 		}	
 	}
 
@@ -228,11 +230,13 @@ void mostraNetlist(void){
     }
   
   else if (tipo=='M') {
-  		linear++;
+  		linear++;  		
       printf("\n%s %s %d %d MODO: %s INVERTIDO=%d  I0 =%e Vds=%e Vgs=%e Vbs=%e Ids=%e \nGds=%e Gm=%e Gmb=%e Cgd=%e Cbg=%e Cgs=%e\n",netlist[i].nome,
 	  netlist[i].tipo,netlist[i].a,netlist[i].b,netlist[i].modo,netlist[i].invertido,netlist[i].i0,
-	  mos[linear].vds,mos[linear].vgs, mos[linear].vbs,netlist[i].ids,
-	  netlist[i].rgds,netlist[i].gm,netlist[i].gmb,netlist[i].cgd,netlist[i].cbg,netlist[i].cgs);
+	  varAtual[netlist[i].a]-varAtual[netlist[i].b],//vds
+	  varAtual[netlist[i].c]-varAtual[netlist[i].b],//vgs
+	  varAtual[netlist[i].d]-varAtual[netlist[i].b],//vbs
+	  netlist[i].ids,netlist[i].rgds,netlist[i].gm,netlist[i].gmb,netlist[i].cgd,netlist[i].cbg,netlist[i].cgs);
   }
       if (tipo=='V' || tipo=='E' || tipo=='F' || tipo=='O' || tipo=='L')
       printf("Corrente jx: %d\n",netlist[i].x);
@@ -342,16 +346,16 @@ void montaEstampaDC(void){
 					}
 			   else{mos[linear].invertido=0;}
 			    													
-			  mos[linear].vds= varAtual[netlist[i].a] - varAtual[netlist[i].b];
-			  mos[linear].vgs= varAtual[netlist[i].c] - varAtual[netlist[i].b];
-			  mos[linear].vbs= varAtual[netlist[i].d] - varAtual[netlist[i].b];			  			  
+			  mos[linear].vds= varAtual[netlist[i].a]-varAtual[netlist[i].b];
+			  mos[linear].vgs= varAtual[netlist[i].c]-varAtual[netlist[i].b];
+			  mos[linear].vbs= varAtual[netlist[i].d]-varAtual[netlist[i].b];			  			  
 				
 			   //VERIFICA TIPO P
 					if (mos[linear].tipo[0]=='P'){						
-						mos[linear].vds *= -1.0;
-						mos[linear].vgs *= -1.0;
-						mos[linear].vbs *= -1.0;
-						mos[linear].vt  *= -1.0;
+						mos[linear].vds *= -1.0;									
+						mos[linear].vgs *= -1.0;													
+						mos[linear].vt  *= -1.0;									
+						mos[linear].vbs *= -1.0;					
 						mos[linear].pmos=1;
 					}								
 					  	
@@ -713,14 +717,7 @@ int numero(char *nome)
     return i; /* no ja conhecido */
   }
 }
-/*void clrscr() {
-  #ifdef WINDOWS
-  system("cls");
-  #endif
-  #ifdef LINUX
-  system("clear");
-  #endif
-}*/
+
 
 int main(void)
 {
@@ -947,8 +944,8 @@ int main(void)
 		if(convergencia[k]==1){k++;}
 		else{k=-1;}
 	}
-	if (k==nv+1){fim =1;}
-    else if (contador==10000){fim =1;} 
+		if (k==nv+1){fim =1;}
+    	else if (contador==10000){fim =1;} 
      
      if (linear==0){fim=1; }
 	}//fim do while
