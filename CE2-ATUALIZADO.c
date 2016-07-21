@@ -204,8 +204,8 @@ void verMOSCond(void){
 		mos[linear].i0 *= 1.0;
 		}
 		else if(mos[linear].tipo[0]=='P'){
+		mos[linear].i0 *= -1.0;	
 		mos[linear].ids *= -1.0;
-		mos[linear].i0 = mos[linear].ids - mos[linear].gm*mos[linear].vgs - mos[linear].gmb*mos[linear].vbs - mos[linear].rgds*mos[linear].vds;	
 		}	
 	}
 
